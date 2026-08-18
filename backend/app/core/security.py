@@ -1,8 +1,10 @@
+from functools import lru_cache
 from typing import Annotated
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from jwt import PyJWKClient
 
 from app.core.config import settings
 from app.core.supabase_client import get_supabase
@@ -16,20 +18,29 @@ class CurrentUser:
         self.email = email
 
 
+@lru_cache
+def _get_jwks_client() -> PyJWKClient:
+    """
+    This project's Supabase instance uses the newer asymmetric signing keys
+    (ES256 — confirmed via Project Settings > JWT Keys > JWT Signing Keys).
+    Supabase publishes a public JWKS endpoint for exactly this case, so
+    verification needs no shared secret and survives key rotation
+    automatically (no code change needed if Supabase rotates the key again).
+    """
+    jwks_url = f"{settings.supabase_url}/auth/v1/.well-known/jwks.json"
+    return PyJWKClient(jwks_url, cache_keys=True)
+
+
 def _decode_supabase_jwt(token: str) -> dict:
     try:
-        # Supabase issues HS256 tokens signed with the project's JWT secret,
-        # audience "authenticated". If your project has migrated to the newer
-        # asymmetric signing keys (JWT Keys page shows ES256 keys instead of
-        # a legacy secret), this verification approach needs to switch to
-        # fetching the JWKS instead — ask if that's the case.
+        signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
         return jwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=["ES256", "RS256"],
             audience="authenticated",
         )
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
