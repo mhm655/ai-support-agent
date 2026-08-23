@@ -83,31 +83,29 @@ Useful context that isn't visible just from reading the code:
 
 ## Current status (as of last working session)
 
-Fully built and working, verified by the user running it themselves:
+Fully built and verified working end-to-end (including by driving the actual running app, not just reading the code):
 
-- Monorepo structure, GitHub repo (`mhm655/ai-support-agent`), committed after this milestone
-- Full Supabase Auth flow (signup, login, logout)
-- JWT verification (JWKS/ES256) in FastAPI
-- Business onboarding (`businesses` row created post-signup) + full `agents` CRUD
-- Dashboard pages for the above, tested end-to-end (create agent, see it listed)
-
-Built (code exists, second large batch), NOT yet confirmed working end-to-end:
-
-- Document upload → Storage → RAG pipeline (parsing/chunking/embedding/storage)
-- Streaming chat with retrieval
-- Lead capture via function calling
-- Conversations/leads/analytics dashboard views
-- Embeddable widget (`widget.js` + demo page)
+- Monorepo structure, GitHub repo (`mhm655/ai-support-agent`), pushed
+- Full Supabase Auth flow (signup, login, logout), JWT verification (JWKS/ES256) in FastAPI
+- Business onboarding (`businesses` row created post-signup) + full `agents` CRUD, dashboard pages for both
+- Document upload → Storage → RAG pipeline (parsing/chunking/embedding/storage) — confirmed a real `.txt` file processes to `status: done`
+- Streaming chat with retrieval — confirmed answers are actually grounded in the uploaded document (e.g. "do you accept Cigna" vs. "do you accept Medicaid" give different, correct answers), not just plausible-sounding
+- Lead capture via function calling — confirmed a real chat message produces a real row in the Leads tab
+- Conversations/leads/analytics dashboard views — confirmed against real data from the above
+- Embeddable widget (`widget.js`) — confirmed working on a separate demo page, same grounded answers as the dashboard test chat
 - Landing page (dark navy/amber palette, Space Grotesk + IBM Plex Sans + IBM Plex Mono, animated hero chat transcript replaying a dentist/insurance Q&A example)
+- Dashboard/auth pages now share the landing page's brand system (was default Tailwind black-on-white before)
 
-The one real test attempt so far: uploaded a sample dental-clinic business-info `.txt` file (hours, insurance, pricing, policies, FAQs — designed to test whether retrieval grounds answers correctly, e.g. "do you accept Cigna" vs. "do you accept Medicaid" should get different answers). Upload succeeded, but background processing failed with `openai.RateLimitError: insufficient_quota` — this is what triggered the OpenAI→Gemini switch. The full RAG/chat/lead-capture pipeline has not yet been successfully tested end-to-end with a working embeddings/chat provider. This is the immediate next milestone: re-upload that same test document, confirm status flips to `done`, then test chat/leads/conversations/analytics for real.
+Two real issues were found and fixed along the way, not just the OpenAI→Gemini switch documented above:
+1. `gemini-3.5-flash`'s free tier on this project caps at 20 requests/day, which silently crashed the SSE stream with an unhandled 500 once exhausted. Fixed by switching the chat model to `gemini-3.5-flash-lite` and adding a proper `error` SSE event end-to-end (backend catch block → `lib/chat.ts` → `TestChatTab` → `widget.js`) so any future API failure surfaces as a readable message instead of a dead connection.
+2. Several accessibility gaps in the original dashboard/auth forms (inputs with no associated `<label>`, no visible focus states, destructive document-delete with no confirmation) — fixed during the design pass.
 
 Not started: actual deployment (a full guide exists — Vercel for frontend, Railway/Render for backend — but nothing is live anywhere).
 
 ## Known loose ends / cleanup TODO
 
-- A stray duplicate venv exists at the repo root (`ai-support-agent/venv/`, separate from the correct `ai-support-agent/backend/venv/`). It was created accidentally, has a broken/older dependency state (hit a `pydantic-core` Rust-compilation failure that the real backend venv doesn't have), and VS Code's Python extension has auto-activated it unexpectedly more than once, causing confusing "package not found" errors when the wrong venv was active. This should be deleted once it's confirmed the real `backend/venv/` is the only one in use — hasn't been done yet as of the last session.
-- An untracked `project.md` file exists at the repo root (visible in `git status`) whose origin is unknown — it wasn't created by either the user or by planning in this conversation. Worth opening and checking what's in it before committing, in case it's stray/irrelevant content.
+- ~~Stray duplicate venv at the repo root~~ — resolved. Deleted after confirming `backend/venv/` was the only one actually referenced anywhere in the project.
+- ~~Unexplained `project.md` at the repo root~~ — resolved. Origin stayed unclear, but the user chose to keep it locally and gitignore it rather than delete or track it.
 - There was a near-miss where real Supabase and OpenAI secret keys ended up pasted into `backend/.env.example` (not `.env`) and got caught by GitHub's push protection before ever reaching a public commit. Fixed by amending the commit. Worth double-checking `.env.example` periodically only ever contains placeholder values.
 
 ## Working with this user
@@ -125,8 +123,6 @@ Useful context for how to collaborate effectively here:
 
 ## Suggested next steps
 
-1. Confirm the Gemini integration actually works: re-upload a test document, confirm processing completes (`status: done`), then test the chat/lead-capture flow for real.
-2. Test the remaining dashboard tabs (Leads, Conversations, Analytics) and the widget (`widget.js` + demo page) against real data.
-3. Clean up the two loose ends above (stray root venv, unexplained `project.md`).
-4. Once the full flow is confirmed working locally, move to deployment (guide already exists for Vercel + Railway/Render).
-5. Given the user's stated goal of understanding the code better, consider pacing further changes as smaller, explained steps rather than large batch deliveries where reasonable.
+1. ~~Confirm the Gemini integration actually works~~ / ~~test the remaining dashboard tabs and the widget~~ / ~~clean up stray venv and project.md~~ — done, see Current status above.
+2. Move to deployment (guide already exists for Vercel + Railway/Render, nothing live yet).
+3. Given the user's stated goal of understanding the code better, consider pacing further changes as smaller, explained steps rather than large batch deliveries where reasonable.
