@@ -10,7 +10,7 @@ defense for direct frontend queries, not the primary guard for this API.
 python -m venv venv
 source venv/bin/activate   # venv\Scripts\activate on Windows
 pip install -r requirements.txt
-cp .env.example .env       # fill in your real Supabase + OpenAI values
+cp .env.example .env       # fill in your real Supabase + Gemini values
 ```
 
 ## Run
@@ -55,5 +55,5 @@ app/
 1. `documents.py` router — upload endpoint (Supabase Storage) + status field
 2. `services/chunking.py` + `services/embeddings.py` — parse → chunk → embed → pgvector
 3. `chat.py` router — SSE streaming endpoint using `match_chunks` for retrieval
-4. Lead capture via OpenAI function calling inside the chat flow
+4. Lead capture via Gemini function calling inside the chat flow
 5. `leads.py`, `conversations.py`, `analytics.py` — mostly straightforward CRUD/aggregation once the above exists

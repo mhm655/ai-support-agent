@@ -6,8 +6,12 @@ class Settings(BaseSettings):
 
     supabase_url: str
     supabase_secret_key: str
-    supabase_jwt_secret: str
-    openai_api_key: str
+    # No longer required — JWKS-based verification (see core/security.py)
+    # fetches the public key over HTTP instead of needing the shared secret.
+    # Left optional rather than removed in case you ever need to fall back
+    # to legacy HS256 verification.
+    supabase_jwt_secret: str | None = None
+    gemini_api_key: str
     cors_origins: str = "http://localhost:3000"
 
     @property
