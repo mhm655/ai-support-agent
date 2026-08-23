@@ -206,14 +206,20 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>Simple pricing</h2>
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-white/10 p-8">
+          <div className="flex flex-col rounded-xl border border-white/10 p-8">
             <h3 className={`${display.className} text-lg font-bold`}>Starter</h3>
             <p className={`${display.className} mt-2 text-3xl font-bold`}>Free</p>
             <p className={`${body.className} mt-2 text-sm text-[#8892B0]`}>
               1 agent, 1 document, up to 100 conversations/month.
             </p>
+            <Link
+              href="/signup"
+              className={`${body.className} mt-6 rounded-full border border-white/15 px-5 py-2.5 text-center text-sm font-medium text-[#F4F2EC] hover:bg-white/5`}
+            >
+              Get started
+            </Link>
           </div>
-          <div className="rounded-xl border border-[#E8A33D] p-8">
+          <div className="flex flex-col rounded-xl border border-[#E8A33D] p-8">
             <h3 className={`${display.className} text-lg font-bold`}>Growth</h3>
             <p className={`${display.className} mt-2 text-3xl font-bold`}>
               $29<span className="text-sm font-normal text-[#8892B0]">/mo</span>
@@ -221,6 +227,12 @@ export default function LandingPage() {
             <p className={`${body.className} mt-2 text-sm text-[#8892B0]`}>
               Unlimited agents and documents, unlimited conversations.
             </p>
+            <Link
+              href="/signup"
+              className={`${body.className} mt-6 rounded-full bg-[#E8A33D] px-5 py-2.5 text-center text-sm font-medium text-[#12142B] hover:opacity-90`}
+            >
+              Get started
+            </Link>
           </div>
         </div>
       </section>
