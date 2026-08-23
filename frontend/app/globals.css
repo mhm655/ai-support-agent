@@ -1,26 +1,37 @@
 @import "tailwindcss";
 
+/*
+ * Brand tokens, matching the landing page (app/page.tsx). The dashboard and
+ * auth pages reuse these rather than inventing a second palette — one
+ * accent (amber), one ink color, one light and one dark surface.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-navy: #12142b;
+  --color-navy-card: #181b36;
+  --color-cream: #f4f2ec;
+  --color-amber: #e8a33d;
+  --color-slate: #8892b0;
+  --color-slate-onlight: #5b5f73;
+  --color-emerald: #34d399;
+  --color-rose: #d9584b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: var(--color-navy);
+  --color-navy: var(--color-navy);
+  --color-navy-card: var(--color-navy-card);
+  --color-cream: var(--color-cream);
+  --color-amber: var(--color-amber);
+  --color-slate: var(--color-slate);
+  --color-slate-onlight: var(--color-slate-onlight);
+  --color-emerald: var(--color-emerald);
+  --color-rose: var(--color-rose);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-navy);
 }
