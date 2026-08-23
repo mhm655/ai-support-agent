@@ -100,7 +100,7 @@ Two real issues were found and fixed along the way, not just the OpenAI→Gemini
 1. `gemini-3.5-flash`'s free tier on this project caps at 20 requests/day, which silently crashed the SSE stream with an unhandled 500 once exhausted. Fixed by switching the chat model to `gemini-3.5-flash-lite` and adding a proper `error` SSE event end-to-end (backend catch block → `lib/chat.ts` → `TestChatTab` → `widget.js`) so any future API failure surfaces as a readable message instead of a dead connection.
 2. Several accessibility gaps in the original dashboard/auth forms (inputs with no associated `<label>`, no visible focus states, destructive document-delete with no confirmation) — fixed during the design pass.
 
-Not started: actual deployment (a full guide exists — Vercel for frontend, Railway/Render for backend — but nothing is live anywhere).
+**Deployed and live**: frontend + widget on Vercel (`ai-support-agent-liard.vercel.app`), backend on Railway (`ai-support-agent-production-6e2e.up.railway.app`). Verified end-to-end in production the same way as local: signup, agent creation, document upload → `status: done`, grounded chat answers. CORS and Supabase Auth Site URL both point at the production frontend. See `DEPLOYMENT.md` for the full setup steps if this ever needs to be redone (new environment, second deploy, etc.).
 
 ## Known loose ends / cleanup TODO
 
@@ -124,5 +124,5 @@ Useful context for how to collaborate effectively here:
 ## Suggested next steps
 
 1. ~~Confirm the Gemini integration actually works~~ / ~~test the remaining dashboard tabs and the widget~~ / ~~clean up stray venv and project.md~~ — done, see Current status above.
-2. Move to deployment (guide already exists for Vercel + Railway/Render, nothing live yet).
+2. ~~Move to deployment~~ — done, live on Vercel + Railway, see Current status above.
 3. Given the user's stated goal of understanding the code better, consider pacing further changes as smaller, explained steps rather than large batch deliveries where reasonable.
