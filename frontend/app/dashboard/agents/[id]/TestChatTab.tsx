@@ -43,9 +43,20 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
             return copy;
           });
         },
+        onError: (message) => {
+          setMessages((prev) => {
+            const copy = [...prev];
+            copy[copy.length - 1] = { role: "assistant", text: message };
+            return copy;
+          });
+        },
       });
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", text: "Couldn't reach the agent. Try again." }]);
+      setMessages((prev) => {
+        const copy = [...prev];
+        copy[copy.length - 1] = { role: "assistant", text: "Couldn't reach the agent. Try again." };
+        return copy;
+      });
     } finally {
       setSending(false);
     }

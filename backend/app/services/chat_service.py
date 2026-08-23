@@ -1,13 +1,21 @@
 import json
+import logging
 from typing import Iterator
 
+from google.genai import errors as genai_errors
 from google.genai import types
 
 from app.core.supabase_client import get_supabase
 from app.services.embeddings import get_genai_client
 from app.services.retrieval import retrieve_relevant_chunks
 
-CHAT_MODEL = "gemini-3.5-flash"  # cheap + fast, good enough quality for support-style Q&A
+logger = logging.getLogger(__name__)
+
+CHAT_MODEL = "gemini-3.5-flash-lite"  # gemini-3.5-flash's free tier on this project
+# caps at 20 requests/day (each chat message costs 2 calls), which made testing
+# impossible. gemini-2.5-flash is deprecated for new projects (404 as of Aug 2026).
+# flash-lite is the tier Google positions for free/high-volume use, so it's the
+# safer bet for a workable daily quota — confirmed working live against this key.
 
 CAPTURE_LEAD_TOOL = types.Tool(
     function_declarations=[
@@ -135,34 +143,57 @@ def stream_chat_response(
 
     client = get_genai_client()
 
-    # Pass 1: decide on tool use (non-streaming, cheap)
-    decision = client.models.generate_content(
-        model=CHAT_MODEL,
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            tools=[CAPTURE_LEAD_TOOL],
-        ),
-    )
+    # Gemini calls are the one part of this request that talks to an
+    # external, rate-limited service — wrap them so a quota/API error
+    # reaches the visitor as a readable message instead of crashing the
+    # SSE stream with an unhandled 500 (FastAPI can't turn that into a
+    # normal error response once streaming has already started).
+    try:
+        # Pass 1: decide on tool use (non-streaming, cheap)
+        decision = client.models.generate_content(
+            model=CHAT_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                tools=[CAPTURE_LEAD_TOOL],
+            ),
+        )
 
-    for call in decision.function_calls or []:
-        if call.name == "capture_lead":
-            args = call.args or {}
-            _capture_lead(agent["id"], conversation_id, args)
-            yield f"event: lead_captured\ndata: {json.dumps(args)}\n\n"
+        for call in decision.function_calls or []:
+            if call.name == "capture_lead":
+                args = call.args or {}
+                _capture_lead(agent["id"], conversation_id, args)
+                yield f"event: lead_captured\ndata: {json.dumps(args)}\n\n"
 
-    # Pass 2: stream the actual reply
-    full_reply = ""
-    stream = client.models.generate_content_stream(
-        model=CHAT_MODEL,
-        contents=contents,
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
-    )
-    for chunk in stream:
-        delta = chunk.text
-        if delta:
-            full_reply += delta
-            yield f"event: token\ndata: {json.dumps({'text': delta})}\n\n"
+        # Pass 2: stream the actual reply
+        full_reply = ""
+        stream = client.models.generate_content_stream(
+            model=CHAT_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(system_instruction=system_prompt),
+        )
+        for chunk in stream:
+            delta = chunk.text
+            if delta:
+                full_reply += delta
+                yield f"event: token\ndata: {json.dumps({'text': delta})}\n\n"
 
-    _save_message(conversation_id, "assistant", full_reply)
+        _save_message(conversation_id, "assistant", full_reply)
+    except genai_errors.ClientError as e:
+        logger.warning("Gemini client error during chat: %s", e)
+        message = (
+            "This agent is getting more questions than its current plan allows right now. "
+            "Please try again in a minute."
+            if e.code == 429
+            else "Something went wrong generating a reply. Please try again."
+        )
+        yield f"event: error\ndata: {json.dumps({'message': message})}\n\n"
+        yield "event: done\ndata: {}\n\n"
+        return
+    except genai_errors.APIError as e:
+        logger.exception("Gemini API error during chat: %s", e)
+        yield f"event: error\ndata: {json.dumps({'message': 'Something went wrong generating a reply. Please try again.'})}\n\n"
+        yield "event: done\ndata: {}\n\n"
+        return
+
     yield "event: done\ndata: {}\n\n"

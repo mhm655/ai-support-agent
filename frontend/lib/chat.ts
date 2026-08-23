@@ -4,6 +4,7 @@ export type ChatStreamHandlers = {
   onConversationId?: (id: string) => void;
   onToken: (text: string) => void;
   onLeadCaptured?: (lead: Record<string, string>) => void;
+  onError?: (message: string) => void;
   onDone?: () => void;
 };
 
@@ -56,6 +57,7 @@ export async function streamChat(
       if (eventName === "conversation") handlers.onConversationId?.(data.conversation_id);
       else if (eventName === "token") handlers.onToken(data.text);
       else if (eventName === "lead_captured") handlers.onLeadCaptured?.(data);
+      else if (eventName === "error") handlers.onError?.(data.message);
       else if (eventName === "done") handlers.onDone?.();
     }
   }

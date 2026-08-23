@@ -9,7 +9,7 @@ Two-app repo for an embeddable AI customer-support widget product — a portfoli
 - `backend/` — FastAPI API. Owns all authorization and is the RAG/chat engine.
 - `frontend/` — Next.js (App Router) dashboard where a business configures agents, plus the public embeddable widget script served from `frontend/public/widget.js`.
 - Supabase provides Postgres (with pgvector), Auth, and Storage. Backend and frontend each hold their own Supabase client with different privilege levels (see Auth below).
-- Chat/embeddings run on Gemini (`gemini-3.5-flash` for chat, `gemini-embedding-2` for embeddings, truncated to 1536 dims) via the `google-genai` SDK.
+- Chat/embeddings run on Gemini (`gemini-3.5-flash-lite` for chat, `gemini-embedding-2` for embeddings, truncated to 1536 dims) via the `google-genai` SDK. Chat started on `gemini-3.5-flash`, but that model's free tier on this project caps at 20 requests/day (each chat message costs 2 calls) — switched to the `-lite` tier, which Google positions for free/high-volume use, after hitting that wall during testing. `gemini-2.5-flash` was tried as a fallback first but is fully deprecated for new projects (404, not just quota).
 
 ## Commands
 
@@ -54,7 +54,7 @@ The `/public/agents/{agent_id}/chat` route (`api/routers/public_chat.py`) is del
 **Chat pipeline** (`services/chat_service.stream_chat_response`, called from `public_chat.py`):
 
 1. `retrieval.retrieve_relevant_chunks` embeds the incoming message and calls the `match_chunks` Postgres RPC for pgvector similarity search, scoped to the agent.
-2. Two Gemini calls against `gemini-3.5-flash`: a non-streaming pass with the `capture_lead` tool available (tool calls don't mix well with streaming), then a streaming pass for the actual visible reply.
+2. Two Gemini calls against `gemini-3.5-flash-lite`: a non-streaming pass with the `capture_lead` tool available (tool calls don't mix well with streaming), then a streaming pass for the actual visible reply.
 3. Results are yielded as hand-rolled Server-Sent Events (`event: conversation`, `event: token`, `event: lead_captured`, `event: done`) over a `StreamingResponse` — not FastAPI's SSE helpers.
 
 **Embedding dimension is a cross-file constraint**: `EMBEDDING_DIMENSIONS = 1536` in `services/embeddings.py` must match the `document_chunks.embedding` column type (`vector(1536)`) in the Supabase schema. Gemini's embedding model defaults to 3072 dims and is truncated via `output_dimensionality` — changing that constant requires a matching Supabase migration.

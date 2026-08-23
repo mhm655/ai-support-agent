@@ -145,6 +145,9 @@
           } else if (eventName === "token") {
             assistantEl.textContent += data.text;
             messagesEl.scrollTop = messagesEl.scrollHeight;
+          } else if (eventName === "error") {
+            assistantEl.textContent = data.message;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
           }
         }
       }
