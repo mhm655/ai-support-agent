@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const display = Space_Grotesk({
+// Bricolage Grotesque for brand/marketing moments (wordmark, landing page
+// headlines) — chosen over the far more common Space Grotesk specifically
+// because it reads as templated at this point. Reserved for places that
+// want personality; the dashboard's own headings use the body font
+// instead (see app/dashboard/*), so the working product doesn't borrow
+// the marketing page's voice.
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
   weight: ["500", "700"],
   variable: "--font-display",

@@ -117,7 +117,7 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
         </div>
       ) : documents.length === 0 ? (
         <div className="rounded-xl border border-dashed border-ink/15 px-6 py-10 text-center">
-          <p className="font-display font-bold text-ink">No documents yet</p>
+          <p className="font-bold text-ink">No documents yet</p>
           <p className="mt-1 text-sm text-slate-onlight">
             Upload a PDF, .txt, or .md file with your hours, pricing, or policies.
           </p>

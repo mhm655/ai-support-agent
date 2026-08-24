@@ -27,7 +27,7 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-ink/15 px-6 py-10 text-center">
-        <p className="font-display font-bold text-ink">No leads yet</p>
+        <p className="font-bold text-ink">No leads yet</p>
         <p className="mt-1 text-sm text-slate-onlight">
           They&apos;ll show up here once a chat results in a name, email, or phone number.
         </p>

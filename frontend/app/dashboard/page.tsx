@@ -86,7 +86,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Your agents</h1>
+        <h1 className="text-2xl font-bold text-ink">Your agents</h1>
         <p className="mt-1 text-sm text-slate-onlight">
           Each agent has its own knowledge base and answers as a separate assistant.
         </p>
@@ -127,7 +127,7 @@ export default function DashboardPage() {
             </div>
           ) : agents.length === 0 ? (
             <div className="rounded-xl border border-dashed border-ink/15 px-6 py-12 text-center">
-              <p className="font-display font-bold text-ink">No agents yet</p>
+              <p className="font-bold text-ink">No agents yet</p>
               <p className="mt-1 text-sm text-slate-onlight">
                 Create one above to start answering customer questions from your own documents.
               </p>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber/15 font-display text-sm font-bold text-amber"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber/15 text-sm font-bold text-amber"
                     >
                       {agent.name.trim().charAt(0).toUpperCase() || "?"}
                     </span>

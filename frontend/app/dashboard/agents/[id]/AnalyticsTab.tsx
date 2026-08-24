@@ -34,7 +34,7 @@ export default function AnalyticsTab({ agentId }: { agentId: string }) {
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-ink/10 bg-white p-4">
           <div className="text-amber">{card.icon}</div>
-          <p className="mt-2 font-display text-2xl font-bold tabular-nums text-ink">{card.value}</p>
+          <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{card.value}</p>
           <p className="text-sm text-slate-onlight">{card.label}</p>
         </div>
       ))}

@@ -55,7 +55,7 @@ export default function SignupPage() {
       </Link>
 
       <div className="w-full max-w-sm rounded-xl border border-ink/10 bg-white p-8 shadow-sm">
-        <h1 className="font-display text-xl font-bold text-ink">Create your account</h1>
+        <h1 className="text-xl font-bold text-ink">Create your account</h1>
         <p className="mt-1 text-sm text-slate-onlight">
           Set up your business and start building an agent.
         </p>

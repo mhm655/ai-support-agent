@@ -61,7 +61,7 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
   if (conversations.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-ink/15 px-6 py-10 text-center">
-        <p className="font-display font-bold text-ink">No conversations yet</p>
+        <p className="font-bold text-ink">No conversations yet</p>
         <p className="mt-1 text-sm text-slate-onlight">
           Chats from your test panel or the embedded widget will appear here.
         </p>
