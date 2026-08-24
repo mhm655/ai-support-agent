@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 
@@ -70,6 +71,86 @@ function AnimatedTranscript() {
   );
 }
 
+// Reveals children once as they scroll into view. Compositor-friendly
+// (transform/opacity only), IntersectionObserver-based (no scroll
+// listeners), and skips straight to visible under prefers-reduced-motion.
+function Reveal({
+  children,
+  className = "",
+  delayMs = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delayMs?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{ transitionDelay: `${delayMs}ms` }}
+      className={`transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:!delay-0 ${
+        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0 motion-reduce:translate-y-0"
+      } ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+const ICONS = {
+  answers: (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v6A2.5 2.5 0 0 1 14.5 14H9l-3.5 3v-3H5.5A2.5 2.5 0 0 1 3 11.5v-6Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  books: (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <rect x="3" y="4.5" width="14" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 8h14M7 4.5V3M13 4.5V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  remembers: (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M16.5 10a6.5 6.5 0 1 1-1.9-4.6M16.5 3v3.5H13"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  handsOff: (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 8.5v4M10 6.75v.02" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+};
+
 const STEPS = [
   {
     n: "01",
@@ -89,14 +170,18 @@ const STEPS = [
 ];
 
 const CAPABILITIES = [
-  { label: "answers", body: "Pricing, hours, policies, insurance — pulled from your own documents." },
-  { label: "books", body: "Collects name, email, and preferred time when a visitor wants to schedule." },
-  { label: "remembers", body: "Keeps context through a conversation — no repeating yourself." },
-  { label: "hands off", body: "Says so plainly when it doesn't know something, instead of guessing." },
+  { icon: "answers" as const, label: "answers", body: "Pricing, hours, policies, insurance — pulled from your own documents." },
+  { icon: "books" as const, label: "books", body: "Collects name, email, and preferred time when a visitor wants to schedule." },
+  { icon: "remembers" as const, label: "remembers", body: "Keeps context through a conversation — no repeating yourself." },
+  { icon: "handsOff" as const, label: "hands off", body: "Says so plainly when it doesn't know something, instead of guessing." },
 ];
 
 const USE_CASES = [
-  { name: "Dental & medical", detail: "Insurance questions, appointment requests, after-hours coverage." },
+  {
+    name: "Dental & medical",
+    detail: "Insurance questions, appointment requests, after-hours coverage.",
+    imageSeed: "frontdesk-dental-office-9",
+  },
   { name: "Salons & spas", detail: "Service menus, pricing, booking interest capture." },
   { name: "Home services", detail: "Quote requests, service areas, scheduling callbacks." },
 ];
@@ -159,14 +244,16 @@ export default function LandingPage() {
       {/* How it works */}
       <section id="how-it-works" className="bg-[#F4F2EC] py-20 text-[#12142B]">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>How it works</h2>
+          <Reveal>
+            <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>How it works</h2>
+          </Reveal>
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.n}>
+            {STEPS.map((step, i) => (
+              <Reveal key={step.n} delayMs={i * 100}>
                 <span className={`${mono.className} text-sm text-[#E8A33D]`}>{step.n}</span>
                 <h3 className={`${display.className} mt-2 text-lg font-bold`}>{step.title}</h3>
                 <p className={`${body.className} mt-2 text-sm text-[#5B5F73]`}>{step.body}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -174,13 +261,16 @@ export default function LandingPage() {
 
       {/* Capabilities */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>What it handles</h2>
+        <Reveal>
+          <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>What it handles</h2>
+        </Reveal>
         <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-2">
           {CAPABILITIES.map((cap) => (
             <div key={cap.label} className="bg-[#12142B] p-6">
-              <span className={`${mono.className} text-xs uppercase tracking-widest text-[#E8A33D]`}>
-                {cap.label}
-              </span>
+              <div className="flex items-center gap-2 text-[#E8A33D]">
+                {ICONS[cap.icon]}
+                <span className={`${mono.className} text-xs uppercase tracking-widest`}>{cap.label}</span>
+              </div>
               <p className={`${body.className} mt-2 text-sm text-[#8892B0]`}>{cap.body}</p>
             </div>
           ))}
@@ -190,21 +280,49 @@ export default function LandingPage() {
       {/* Use cases */}
       <section className="bg-[#F4F2EC] py-20 text-[#12142B]">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>Built for businesses that answer the same questions all day</h2>
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {USE_CASES.map((uc) => (
-              <div key={uc.name} className="rounded-xl border border-black/10 p-6">
-                <h3 className={`${display.className} font-bold`}>{uc.name}</h3>
-                <p className={`${body.className} mt-2 text-sm text-[#5B5F73]`}>{uc.detail}</p>
+          <Reveal>
+            <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>
+              Built for businesses that answer the same questions all day
+            </h2>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <Reveal className="lg:col-span-2">
+              <div className="flex h-full flex-col overflow-hidden rounded-xl border border-black/10 sm:flex-row">
+                <div className="relative h-48 w-full shrink-0 sm:h-auto sm:w-2/5">
+                  <Image
+                    src={`https://picsum.photos/seed/${USE_CASES[0].imageSeed}/500/500`}
+                    alt=""
+                    fill
+                    sizes="(min-width: 640px) 40vw, 100vw"
+                    className="object-cover [filter:grayscale(1)_sepia(0.15)] mix-blend-luminosity"
+                  />
+                  <div className="absolute inset-0 bg-[#12142B]/35" />
+                </div>
+                <div className="flex flex-col justify-center p-6">
+                  <h3 className={`${display.className} text-lg font-bold`}>{USE_CASES[0].name}</h3>
+                  <p className={`${body.className} mt-2 text-sm text-[#5B5F73]`}>{USE_CASES[0].detail}</p>
+                </div>
               </div>
-            ))}
+            </Reveal>
+            <div className="flex flex-col gap-6">
+              {USE_CASES.slice(1).map((uc, i) => (
+                <Reveal key={uc.name} delayMs={(i + 1) * 100} className="flex-1">
+                  <div className="flex h-full flex-col justify-center rounded-xl border border-black/10 p-6">
+                    <h3 className={`${display.className} font-bold`}>{uc.name}</h3>
+                    <p className={`${body.className} mt-2 text-sm text-[#5B5F73]`}>{uc.detail}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Pricing */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>Simple pricing</h2>
+        <Reveal>
+          <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>Simple pricing</h2>
+        </Reveal>
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="flex flex-col rounded-xl border border-white/10 p-8">
             <h3 className={`${display.className} text-lg font-bold`}>Starter</h3>
@@ -239,15 +357,17 @@ export default function LandingPage() {
 
       {/* Final CTA */}
       <section className="border-t border-white/10 px-6 py-20 text-center">
-        <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>
-          Stop answering the same five questions.
-        </h2>
-        <Link
-          href="/signup"
-          className={`${body.className} mt-6 inline-block rounded-full bg-[#E8A33D] px-6 py-3 text-sm font-medium text-[#12142B] hover:opacity-90`}
-        >
-          Get started free
-        </Link>
+        <Reveal className="flex flex-col items-center">
+          <h2 className={`${display.className} text-2xl font-bold md:text-3xl`}>
+            Stop answering the same five questions.
+          </h2>
+          <Link
+            href="/signup"
+            className={`${body.className} mt-6 inline-block rounded-full bg-[#E8A33D] px-6 py-3 text-sm font-medium text-[#12142B] hover:opacity-90`}
+          >
+            Get started free
+          </Link>
+        </Reveal>
       </section>
 
       <footer className="border-t border-white/10 px-6 py-8 text-center">

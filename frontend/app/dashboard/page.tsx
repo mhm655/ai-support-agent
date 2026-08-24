@@ -138,12 +138,20 @@ export default function DashboardPage() {
                 <li key={agent.id}>
                   <Link
                     href={`/dashboard/agents/${agent.id}`}
-                    className="block rounded-xl border border-ink/10 bg-white px-4 py-3.5 transition hover:border-amber/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+                    className="flex items-center gap-3 rounded-xl border border-ink/10 bg-white px-4 py-3.5 transition hover:border-amber/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
                   >
-                    <p className="font-medium text-ink">{agent.name}</p>
-                    <p className="text-sm text-slate-onlight">
-                      Created {new Date(agent.created_at).toLocaleDateString()}
-                    </p>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber/15 font-display text-sm font-bold text-amber"
+                    >
+                      {agent.name.trim().charAt(0).toUpperCase() || "?"}
+                    </span>
+                    <span>
+                      <p className="font-medium text-ink">{agent.name}</p>
+                      <p className="text-sm text-slate-onlight">
+                        Created {new Date(agent.created_at).toLocaleDateString()}
+                      </p>
+                    </span>
                   </Link>
                 </li>
               ))}
