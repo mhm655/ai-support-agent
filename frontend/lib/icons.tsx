@@ -67,3 +67,44 @@ export function ChartIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+// Spinning loading indicator — a ring with one lighter arc, rotated via the
+// `animate-spin` utility class already shipped with Tailwind.
+export function SpinnerIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={`animate-spin ${className}`} aria-hidden="true">
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+      <path d="M17.5 10a7.5 7.5 0 0 0-7.5-7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function EyeIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M1.5 10S4.5 4.5 10 4.5 18.5 10 18.5 10 15.5 15.5 10 15.5 1.5 10 1.5 10Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M2.5 10S5.5 4.5 10 4.5c1.4 0 2.63.32 3.68.82M17.5 10S15.6 13.6 12.2 14.9M4.2 5.8C2.8 6.9 1.5 10 1.5 10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M8.15 8.15a2.5 2.5 0 0 0 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M2 2l16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

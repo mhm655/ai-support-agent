@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { apiFetch } from "@/lib/api";
+import { SpinnerIcon, UserIcon } from "@/lib/icons";
 
 type Agent = {
   id: string;
@@ -76,12 +77,21 @@ export default function DashboardPage() {
           <Link href="/dashboard" className="font-display text-lg font-bold text-ink">
             frontdesk<span className="text-amber">.ai</span>
           </Link>
-          <button
-            onClick={handleLogout}
-            className="rounded-full border border-ink/15 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
-          >
-            Log out
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/profile"
+              aria-label="Profile"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink transition hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+            >
+              <UserIcon />
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-ink/15 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -106,8 +116,9 @@ export default function DashboardPage() {
           <button
             type="submit"
             disabled={creating || !newAgentName.trim()}
-            className="shrink-0 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
+            {creating && <SpinnerIcon />}
             {creating ? "Creating…" : "Create agent"}
           </button>
         </form>

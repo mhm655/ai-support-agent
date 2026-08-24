@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { apiFetch, ApiError } from "@/lib/api";
+import { EyeIcon, EyeOffIcon, SpinnerIcon } from "@/lib/icons";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -87,16 +89,27 @@ export default function LoginPage() {
             <label htmlFor={passwordId} className="text-sm font-medium text-ink">
               Password
             </label>
-            <input
-              id={passwordId}
-              type="password"
-              autoComplete="current-password"
-              spellCheck={false}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-            />
+            <div className="relative">
+              <input
+                id={passwordId}
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                spellCheck={false}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 pr-10 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-onlight transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -108,8 +121,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 rounded-full bg-amber px-4 py-2.5 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 flex items-center justify-center gap-2 rounded-full bg-amber px-4 py-2.5 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
+            {loading && <SpinnerIcon />}
             {loading ? "Logging in…" : "Log in"}
           </button>
         </form>

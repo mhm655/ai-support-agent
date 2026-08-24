@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.core.security import CurrentUserDep
 from app.core.supabase_client import get_supabase
-from app.schemas.business import BusinessCreate, BusinessResponse
+from app.schemas.business import BusinessCreate, BusinessResponse, BusinessUpdate
 
 router = APIRouter(prefix="/businesses", tags=["businesses"])
 
@@ -41,6 +41,20 @@ async def get_my_business(current_user: CurrentUserDep) -> BusinessResponse:
         .select("*")
         .eq("auth_user_id", current_user.user_id)
         .limit(1)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No business found for this account")
+    return result.data[0]
+
+
+@router.patch("/me", response_model=BusinessResponse)
+async def update_my_business(payload: BusinessUpdate, current_user: CurrentUserDep) -> BusinessResponse:
+    supabase = get_supabase()
+    result = (
+        supabase.table("businesses")
+        .update({"name": payload.name})
+        .eq("auth_user_id", current_user.user_id)
         .execute()
     )
     if not result.data:
