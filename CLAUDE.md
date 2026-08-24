@@ -95,6 +95,8 @@ Fully built and verified working end-to-end (including by driving the actual run
 - Embeddable widget (`widget.js`) — confirmed working on a separate demo page, same grounded answers as the dashboard test chat
 - Landing page (dark navy/amber palette, Space Grotesk + IBM Plex Sans + IBM Plex Mono, animated hero chat transcript replaying a dentist/insurance Q&A example)
 - Dashboard/auth pages now share the landing page's brand system (was default Tailwind black-on-white before)
+- Password show/hide toggle on login/signup, and loading spinners (not just disabled buttons) on auth forms and agent creation — confirmed working on both local dev and the live Vercel deploy
+- `/dashboard/profile` page: shows business name, account email, member-since date, and agent count; business name is editable via a new `PATCH /businesses/me` backend endpoint (`businesses.py`) — confirmed live end-to-end on both Vercel and Railway, including a real rename performed against production
 
 Two real issues were found and fixed along the way, not just the OpenAI→Gemini switch documented above:
 1. `gemini-3.5-flash`'s free tier on this project caps at 20 requests/day, which silently crashed the SSE stream with an unhandled 500 once exhausted. Fixed by switching the chat model to `gemini-3.5-flash-lite` and adding a proper `error` SSE event end-to-end (backend catch block → `lib/chat.ts` → `TestChatTab` → `widget.js`) so any future API failure surfaces as a readable message instead of a dead connection.
@@ -107,6 +109,7 @@ Two real issues were found and fixed along the way, not just the OpenAI→Gemini
 - ~~Stray duplicate venv at the repo root~~ — resolved. Deleted after confirming `backend/venv/` was the only one actually referenced anywhere in the project.
 - ~~Unexplained `project.md` at the repo root~~ — resolved. Origin stayed unclear, but the user chose to keep it locally and gitignore it rather than delete or track it.
 - There was a near-miss where real Supabase and OpenAI secret keys ended up pasted into `backend/.env.example` (not `.env`) and got caught by GitHub's push protection before ever reaching a public commit. Fixed by amending the commit. Worth double-checking `.env.example` periodically only ever contains placeholder values.
+- ~~Railway auto-deploy stopped triggering on push to `main`~~ — resolved. Confirmed via the Railway dashboard on 2026-08-24: after pushing commit `187d3de`, no new deployment appeared (backend returned `405` for the new `PATCH /businesses/me` route while Vercel had already picked up the matching frontend change). Whatever was fixed on the Railway side wasn't diagnosed together — re-verified afterward via `curl` and the live `/openapi.json` that the route is now registered and returns the expected `403` for an unauthenticated request. Worth a quick sanity check after the next backend-touching push, since the root cause was never actually identified.
 
 ## Working with this user
 
