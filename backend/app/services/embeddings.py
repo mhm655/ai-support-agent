@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 from app.core.config import settings
+from app.core.supabase_client import CLIENT_TIMEOUT_SECONDS
 
 EMBEDDING_MODEL = "gemini-embedding-2"
 EMBEDDING_DIMENSIONS = 1536  # matches the `vector(1536)` column in document_chunks
@@ -11,7 +12,14 @@ EMBEDDING_DIMENSIONS = 1536  # matches the `vector(1536)` column in document_chu
 
 @lru_cache
 def get_genai_client() -> genai.Client:
-    return genai.Client(api_key=settings.gemini_api_key)
+    # See the comment on CLIENT_TIMEOUT_SECONDS in supabase_client.py -- same
+    # failure mode applies here: an unbounded Gemini call inside the sync
+    # generator StreamingResponse runs in a thread pool can hold that thread
+    # forever. HttpOptions.timeout is milliseconds, unlike Supabase's seconds.
+    return genai.Client(
+        api_key=settings.gemini_api_key,
+        http_options=types.HttpOptions(timeout=CLIENT_TIMEOUT_SECONDS * 1000),
+    )
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:

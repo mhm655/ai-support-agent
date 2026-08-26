@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Iterator
 
+import httpx
 from google.genai import errors as genai_errors
 from google.genai import types
 
@@ -134,21 +135,23 @@ def stream_chat_response(
     # reused on the next message (widget stores this client-side).
     yield f"event: conversation\ndata: {json.dumps({'conversation_id': conversation_id})}\n\n"
 
-    context_chunks = retrieve_relevant_chunks(message, agent["id"])
-    context = "\n\n---\n\n".join(context_chunks) if context_chunks else "(no matching information found)"
-
-    system_prompt = _build_system_prompt(agent) + f"\n\nContext:\n{context}"
-    history = _load_history(conversation_id)
-    contents = _to_contents(history)
-
-    client = get_genai_client()
-
-    # Gemini calls are the one part of this request that talks to an
-    # external, rate-limited service — wrap them so a quota/API error
-    # reaches the visitor as a readable message instead of crashing the
-    # SSE stream with an unhandled 500 (FastAPI can't turn that into a
-    # normal error response once streaming has already started).
+    # Retrieval, history, and both Gemini calls all talk to an external
+    # service (Supabase or Gemini) with a bounded timeout (see
+    # CLIENT_TIMEOUT_SECONDS in supabase_client.py) -- wrap the lot so a
+    # timeout or API error reaches the visitor as a readable message instead
+    # of crashing the SSE stream with an unhandled 500 (FastAPI can't turn
+    # that into a normal error response once streaming has already started,
+    # since the "conversation" event above already sent the response headers).
     try:
+        context_chunks = retrieve_relevant_chunks(message, agent["id"])
+        context = "\n\n---\n\n".join(context_chunks) if context_chunks else "(no matching information found)"
+
+        system_prompt = _build_system_prompt(agent) + f"\n\nContext:\n{context}"
+        history = _load_history(conversation_id)
+        contents = _to_contents(history)
+
+        client = get_genai_client()
+
         # Pass 1: decide on tool use (non-streaming, cheap)
         decision = client.models.generate_content(
             model=CHAT_MODEL,
@@ -193,6 +196,15 @@ def stream_chat_response(
     except genai_errors.APIError as e:
         logger.exception("Gemini API error during chat: %s", e)
         yield f"event: error\ndata: {json.dumps({'message': 'Something went wrong generating a reply. Please try again.'})}\n\n"
+        yield "event: done\ndata: {}\n\n"
+        return
+    except httpx.TimeoutException as e:
+        # Covers both Supabase (retrieval, history, saving messages) and
+        # Gemini (both clients are httpx-based under the hood) timing out.
+        # This is the case that used to hang forever instead of reaching
+        # here at all -- see CLIENT_TIMEOUT_SECONDS in supabase_client.py.
+        logger.warning("Timed out waiting on an external call during chat: %s", e)
+        yield f"event: error\ndata: {json.dumps({'message': 'This is taking longer than expected. Please try again.'})}\n\n"
         yield "event: done\ndata: {}\n\n"
         return
 
