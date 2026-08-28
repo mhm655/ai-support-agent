@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import { ChatIcon, ChartIcon, ConversationIcon, DocumentIcon, UserIcon } from "@/lib/icons";
+import { ChatIcon, ChartIcon, ConversationIcon, DocumentIcon, SettingsIcon, UserIcon } from "@/lib/icons";
 import { TABS, type Tab } from "./types";
 import TestChatTab from "./TestChatTab";
+import SettingsTab from "./SettingsTab";
 import DocumentsTab from "./DocumentsTab";
 import LeadsTab from "./LeadsTab";
 import ConversationsTab from "./ConversationsTab";
@@ -14,6 +15,7 @@ import AnalyticsTab from "./AnalyticsTab";
 
 const TAB_ICONS: Record<Tab, React.ReactNode> = {
   "Test chat": <ChatIcon />,
+  Settings: <SettingsIcon />,
   Documents: <DocumentIcon />,
   Leads: <UserIcon />,
   Conversations: <ConversationIcon />,
@@ -72,6 +74,7 @@ export default function AgentDetailPage() {
 
         <div className="mt-6">
           {tab === "Test chat" && <TestChatTab agentId={agentId} />}
+          {tab === "Settings" && <SettingsTab agentId={agentId} />}
           {tab === "Documents" && <DocumentsTab agentId={agentId} />}
           {tab === "Leads" && <LeadsTab agentId={agentId} />}
           {tab === "Conversations" && <ConversationsTab agentId={agentId} />}

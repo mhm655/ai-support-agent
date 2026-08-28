@@ -68,6 +68,20 @@ export function ChartIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+export function SettingsIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
+      <circle cx="10" cy="10" r="2.75" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.13 4.87l-1.41 1.41M6.28 13.72l-1.41 1.41M15.13 15.13l-1.41-1.41M6.28 6.28 4.87 4.87"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 // Spinning loading indicator — a ring with one lighter arc, rotated via the
 // `animate-spin` utility class already shipped with Tailwind.
 export function SpinnerIcon({ className = "h-4 w-4" }: IconProps) {

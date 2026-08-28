@@ -16,6 +16,14 @@ export type Analytics = {
   document_count: number;
 };
 export type ChatMessage = { role: "user" | "assistant"; text: string };
+export type Agent = {
+  id: string;
+  business_id: string;
+  name: string;
+  personality: string | null;
+  instructions: string | null;
+  created_at: string;
+};
 
-export const TABS = ["Test chat", "Documents", "Leads", "Conversations", "Analytics"] as const;
+export const TABS = ["Test chat", "Settings", "Documents", "Leads", "Conversations", "Analytics"] as const;
 export type Tab = (typeof TABS)[number];
