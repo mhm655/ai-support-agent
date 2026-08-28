@@ -46,6 +46,23 @@ CAPTURE_LEAD_TOOL = types.Tool(
 def _build_system_prompt(agent: dict) -> str:
     parts = [
         f"You are {agent['name']}, an AI customer support assistant.",
+        # Formatting/brevity is a hard platform rule, not a style choice, so
+        # it goes first and explicitly overrides personality — and it calls
+        # out context-mirroring by name, since that's the actual failure
+        # mode observed: the model was copying the retrieved context's own
+        # bullet/bold formatting into replies rather than following an
+        # abstract "no markdown" instruction, even with that instruction
+        # present elsewhere in the prompt.
+        "HARD FORMATTING RULE, overrides personality/tone below: this is a "
+        "live chat bubble with no markdown rendering, not email or a "
+        "document. Never write *, **, #, -, or numbered-list syntax, even "
+        "if the context below uses that formatting — rewrite anything from "
+        "the context as flowing plain-text sentences. Example: context "
+        "showing \"* New patient: $120\\n* Returning: $95\" becomes \"It's "
+        "$120 for new patients, $95 if you've been in before.\" Keep replies "
+        "short, usually 1-3 sentences, like a text message — not a summary "
+        "of everything relevant in the context, just the answer to what was "
+        "asked.",
     ]
     if agent.get("personality"):
         parts.append(f"Personality/tone: {agent['personality']}")
@@ -54,7 +71,10 @@ def _build_system_prompt(agent: dict) -> str:
     parts.append(
         "Answer using ONLY the context provided below. If the answer isn't in the "
         "context, say you don't have that information and offer to have someone "
-        "follow up — do not make up facts about prices, policies, or availability."
+        "follow up — do not make up facts about prices, policies, or availability. "
+        "Answer only what was asked — don't volunteer extra hours, policies, or "
+        "details from the context that weren't asked about, unless the "
+        "business-specific instructions above tell you to add something."
     )
     return "\n\n".join(parts)
 
