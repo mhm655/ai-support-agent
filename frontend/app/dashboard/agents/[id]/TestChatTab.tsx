@@ -11,7 +11,11 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
-  const visitorIdRef = useRef<string>(`preview-${Math.random().toString(36).slice(2)}`);
+  // Lazy useState initializer, not useRef(Math.random()) — calling an
+  // impure function directly in the render body is flagged by the
+  // react-hooks/purity rule; a lazy initializer is the sanctioned way to
+  // run it exactly once per mount.
+  const [visitorId] = useState(() => `preview-${Math.random().toString(36).slice(2)}`);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,7 +33,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
     setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
 
     try {
-      await streamChat(agentId, text, conversationIdRef.current, visitorIdRef.current, {
+      await streamChat(agentId, text, conversationIdRef.current, visitorId, {
         onConversationId: (id) => {
           conversationIdRef.current = id;
         },

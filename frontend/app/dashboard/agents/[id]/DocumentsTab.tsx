@@ -24,6 +24,12 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
   }
 
   useEffect(() => {
+    // react-hooks/set-state-in-effect flags calling load() (which sets
+    // state synchronously) directly in the effect body. This is the
+    // standard fetch-on-mount pattern React's own docs recommend — the
+    // rule can't distinguish it from an accidental cascading update, so
+    // it's disabled here rather than adding an artificial async wrapper.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // Poll every 3s while any document is still processing, so status
     // flips from "pending" to "done" without a manual refresh.

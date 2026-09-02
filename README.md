@@ -87,6 +87,50 @@ Needs a Supabase project with pgvector enabled, a private Storage bucket
 named `documents`, and a Gemini API key — see `backend/.env.example` and
 `frontend/.env.local.example` for the exact variables.
 
+## Testing
+
+Backend (pytest, fully offline — every Supabase/Gemini call is mocked):
+
+```bash
+cd backend
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+
+Frontend unit tests (Vitest + React Testing Library):
+
+```bash
+cd frontend
+npm test
+```
+
+Frontend end-to-end tests (Playwright, runs against a production build with
+no real backend — see `frontend/playwright.config.ts` for what that does and
+doesn't cover):
+
+```bash
+cd frontend
+npx playwright install --with-deps chromium   # first time only
+npm run build
+npm run test:e2e
+```
+
+## CI/CD
+
+GitHub Actions runs on every push and pull request to `main`:
+
+- [`.github/workflows/backend-ci.yml`](.github/workflows/backend-ci.yml) —
+  installs backend deps on Python 3.11 and 3.12, then runs the pytest suite.
+- [`.github/workflows/frontend-ci.yml`](.github/workflows/frontend-ci.yml) —
+  lints, type-checks, runs unit tests, builds, then runs the Playwright e2e
+  suite against that build.
+
+Both only run when files under their respective app changed. Vercel and
+Railway auto-deploy on push to `main` independently of these workflows — to
+actually gate deploys on tests passing, turn on GitHub branch protection for
+`main` requiring these checks (Settings → Branches → Branch protection
+rules), so a broken PR can't be merged in the first place.
+
 ## Deploying
 
 See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full Vercel + Railway setup.
