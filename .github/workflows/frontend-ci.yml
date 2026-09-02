@@ -41,14 +41,18 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Type-check
-        run: npx tsc --noEmit
-
       - name: Unit tests
         run: npm test
 
+      # Next.js 16 generates some ambient types (e.g. LayoutProps) into
+      # .next/types/ during a build, so type-check only works after this —
+      # running tsc first fails with "Cannot find name 'LayoutProps'" on a
+      # clean checkout even though the code is fine.
       - name: Build
         run: npm run build
+
+      - name: Type-check
+        run: npx tsc --noEmit
 
   e2e:
     runs-on: ubuntu-latest
