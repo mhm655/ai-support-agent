@@ -1,16 +1,15 @@
 name: Backend CI
 
+# No `paths:` filter here on purpose: branch protection requires this
+# workflow's job to pass before merging, and a required check that a
+# path filter sometimes skips leaves GitHub waiting on a status that
+# will never arrive, blocking the PR forever. Running on every push/PR
+# is cheap enough at this repo's size to not be worth that risk.
 on:
   push:
     branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci.yml"
 
 defaults:
   run:

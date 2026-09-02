@@ -1,16 +1,15 @@
 name: Frontend CI
 
+# No `paths:` filter here on purpose: branch protection requires these
+# jobs to pass before merging, and a required check that a path filter
+# sometimes skips leaves GitHub waiting on a status that will never
+# arrive, blocking the PR forever. Running on every push/PR is cheap
+# enough at this repo's size to not be worth that risk.
 on:
   push:
     branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
 
 defaults:
   run:
