@@ -2,10 +2,13 @@
 
 import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { apiFetch } from "@/lib/api";
-import { SpinnerIcon, UserIcon } from "@/lib/icons";
+import DashboardShell from "@/components/DashboardShell";
+import PageHeading from "@/components/PageHeading";
+import Skeleton from "@/components/Skeleton";
+import { FormError } from "@/components/FormField";
+import { CheckIcon, ChatIcon, ClockIcon, SpinnerIcon, UserIcon } from "@/lib/icons";
 
 type Business = {
   id: string;
@@ -78,110 +81,126 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="border-b border-ink/10">
-        <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
-          <Link
-            href="/dashboard"
-            className="text-sm text-slate-onlight underline-offset-2 hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
-          >
-            ← Your agents
-          </Link>
+    <DashboardShell width="max-w-3xl">
+      <PageHeading eyebrow="Account" title="Profile" description="Your account and business details." />
+
+      {loading ? (
+        <div className="mt-8 flex flex-col gap-4">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-64" />
         </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <h1 className="text-2xl font-bold text-ink">Profile</h1>
-        <p className="mt-1 text-sm text-slate-onlight">Your account and business details.</p>
-
-        {loading ? (
-          <div className="mt-8 flex flex-col gap-4" aria-hidden="true">
-            <div className="h-24 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
-            <div className="h-40 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
+      ) : (
+        <div className="mt-8 flex flex-col gap-4">
+          {/* Identity card. The amber ring makes the avatar read as the
+              account's anchor rather than a decorative circle. */}
+          <div className="card flex items-center gap-5 p-6">
+            <span
+              aria-hidden="true"
+              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber/25 bg-amber/10 text-amber"
+            >
+              <UserIcon className="h-6 w-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-display text-lg font-bold tracking-tight text-cream">
+                {business?.name}
+              </p>
+              <p className="truncate text-sm text-mist">{email}</p>
+            </div>
           </div>
-        ) : (
-          <div className="mt-8 flex flex-col gap-6">
-            <div className="flex items-center gap-4 rounded-xl border border-ink/10 bg-white p-6">
+
+          {/* At-a-glance stats */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="card flex items-center gap-4 p-5">
               <span
                 aria-hidden="true"
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-amber/15 text-amber"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-well text-amber"
               >
-                <UserIcon className="h-6 w-6" />
+                <ChatIcon className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-medium text-ink">{business?.name}</p>
-                <p className="text-sm text-slate-onlight">{email}</p>
-                {business && (
-                  <p className="mt-1 text-xs text-slate-onlight">
-                    Member since {new Date(business.created_at).toLocaleDateString()}
-                  </p>
-                )}
+                <p className="font-display text-2xl font-bold tabular-nums text-cream">{agentCount}</p>
+                <p className="text-sm text-dusk">
+                  agent{agentCount === 1 ? "" : "s"} configured
+                </p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-ink/10 bg-white p-6">
-              <h2 className="font-bold text-ink">Business details</h2>
-
-              <form onSubmit={handleSave} className="mt-4 flex flex-col gap-4" noValidate>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor={nameId} className="text-sm font-medium text-ink">
-                    Business name
-                  </label>
-                  <input
-                    id={nameId}
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setSaved(false);
-                    }}
-                    className="w-full max-w-sm rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-ink">Email</span>
-                  <input
-                    type="email"
-                    disabled
-                    value={email ?? ""}
-                    className="w-full max-w-sm cursor-not-allowed rounded-lg border border-ink/15 bg-ink/5 px-3 py-2 text-sm text-slate-onlight outline-none"
-                  />
-                  <span className="text-xs text-slate-onlight">
-                    Managed through your Supabase account, not editable here.
-                  </span>
-                </div>
-
-                {error && (
-                  <p role="alert" className="text-sm text-rose">
-                    {error}
-                  </p>
-                )}
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={saving || !name.trim() || name === business?.name}
-                    className="flex items-center gap-2 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {saving && <SpinnerIcon />}
-                    {saving ? "Saving…" : "Save changes"}
-                  </button>
-                  {saved && <span className="text-sm text-emerald">Saved</span>}
-                </div>
-              </form>
-            </div>
-
-            <div className="rounded-xl border border-ink/10 bg-white p-6">
-              <h2 className="font-bold text-ink">Overview</h2>
-              <p className="mt-2 text-sm text-slate-onlight">
-                {agentCount} agent{agentCount === 1 ? "" : "s"} configured
-              </p>
+            <div className="card flex items-center gap-4 p-5">
+              <span
+                aria-hidden="true"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-well text-amber"
+              >
+                <ClockIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-display text-lg font-bold text-cream">
+                  {business ? new Date(business.created_at).toLocaleDateString() : "—"}
+                </p>
+                <p className="text-sm text-dusk">member since</p>
+              </div>
             </div>
           </div>
-        )}
-      </main>
-    </div>
+
+          <div className="card p-6">
+            <h2 className="font-display text-base font-bold tracking-tight text-cream">Business details</h2>
+
+            <form onSubmit={handleSave} className="mt-5 flex flex-col gap-5" noValidate>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={nameId} className="label">
+                  Business name
+                </label>
+                <input
+                  id={nameId}
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSaved(false);
+                  }}
+                  className="field max-w-sm"
+                />
+                <span className="text-xs text-dusk">
+                  Shown to you here; agents introduce themselves with their own name.
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <span className="label">Email</span>
+                <input
+                  type="email"
+                  disabled
+                  aria-label="Email"
+                  value={email ?? ""}
+                  className="field max-w-sm"
+                />
+                <span className="text-xs text-dusk">
+                  Managed through your Supabase account, not editable here.
+                </span>
+              </div>
+
+              {error && <FormError>{error}</FormError>}
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={saving || !name.trim() || name === business?.name}
+                  className="btn btn-primary"
+                >
+                  {saving && <SpinnerIcon />}
+                  {saving ? "Saving…" : "Save changes"}
+                </button>
+                {saved && (
+                  <span className="flex items-center gap-1.5 text-sm text-emerald">
+                    <CheckIcon className="h-4 w-4" />
+                    Saved
+                  </span>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

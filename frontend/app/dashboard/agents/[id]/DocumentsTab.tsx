@@ -2,13 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import EmptyState from "@/components/EmptyState";
+import Skeleton from "@/components/Skeleton";
+import { FormError } from "@/components/FormField";
+import { DocumentIcon, SpinnerIcon, TrashIcon, UploadIcon } from "@/lib/icons";
 import type { Document } from "./types";
+
+const ACCEPT = ".pdf,.txt,.md";
 
 export default function DocumentsTab({ agentId }: { agentId: string }) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -43,6 +51,19 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
 
+  // Dropping a file assigns it to the real <input type="file">, so the
+  // submit path stays identical whether the file was dropped or picked.
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !fileInputRef.current) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    fileInputRef.current.files = transfer.files;
+    setSelectedName(file.name);
+  }
+
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
     const file = fileInputRef.current?.files?.[0];
@@ -71,6 +92,7 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
       }
 
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setSelectedName(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -89,61 +111,102 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
 
   return (
     <div>
-      <form onSubmit={handleUpload} className="mb-6 flex gap-2">
-        <label htmlFor="document-upload" className="sr-only">
-          Upload a document
-        </label>
-        <input
-          id="document-upload"
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.txt,.md"
-          className="flex-1 rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition file:mr-3 file:rounded-full file:border-0 file:bg-ink/5 file:px-3 file:py-1 file:text-sm file:font-medium file:text-ink focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-        />
-        <button
-          type="submit"
-          disabled={uploading}
-          className="shrink-0 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+      <form onSubmit={handleUpload} className="mb-6">
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          className={`rounded-2xl border border-dashed p-6 text-center transition ${
+            dragging ? "border-amber bg-amber/[0.07]" : "border-line-bright bg-card/40"
+          }`}
         >
-          {uploading ? "Uploading…" : "Upload"}
-        </button>
+          <span
+            aria-hidden="true"
+            className="mx-auto grid h-11 w-11 place-items-center rounded-xl border border-line bg-well text-amber"
+          >
+            <UploadIcon className="h-5 w-5" />
+          </span>
+
+          {/* The input is visually hidden but still the real, focusable
+              control — the label picks up its focus ring via `peer`, which
+              only works if the input precedes it in the DOM. */}
+          <input
+            id="document-upload"
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT}
+            onChange={(e) => setSelectedName(e.target.files?.[0]?.name ?? null)}
+            className="peer sr-only"
+          />
+
+          <p className="mt-4 text-sm text-cream">
+            <label
+              htmlFor="document-upload"
+              className="cursor-pointer rounded px-1 font-medium text-amber underline decoration-amber/40 underline-offset-4 hover:text-amber-soft peer-focus-visible:ring-2 peer-focus-visible:ring-amber/60"
+            >
+              Choose a file
+            </label>{" "}
+            <span className="text-mist">or drag it here</span>
+          </p>
+          <p className="mt-1 font-mono text-[11px] text-dusk">PDF, .txt or .md</p>
+
+          {selectedName && (
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <span className="badge border border-line bg-well text-mist">
+                <DocumentIcon className="h-3.5 w-3.5" />
+                {selectedName}
+              </span>
+              <button type="submit" disabled={uploading} className="btn btn-primary px-4 py-2 text-xs">
+                {uploading ? <SpinnerIcon className="h-3.5 w-3.5" /> : <UploadIcon className="h-3.5 w-3.5" />}
+                {uploading ? "Uploading…" : "Upload"}
+              </button>
+            </div>
+          )}
+        </div>
       </form>
 
       {error && (
-        <p role="alert" className="mb-4 text-sm text-rose">
-          {error}
-        </p>
+        <div className="mb-4">
+          <FormError>{error}</FormError>
+        </div>
       )}
 
       {loading ? (
-        <div className="flex flex-col gap-2" aria-hidden="true">
+        <div className="flex flex-col gap-2">
           {[0, 1].map((i) => (
-            <div key={i} className="h-14 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
+            <Skeleton key={i} className="h-[68px]" />
           ))}
         </div>
       ) : documents.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-ink/15 px-6 py-10 text-center">
-          <p className="font-bold text-ink">No documents yet</p>
-          <p className="mt-1 text-sm text-slate-onlight">
-            Upload a PDF, .txt, or .md file with your hours, pricing, or policies.
-          </p>
-        </div>
+        <EmptyState
+          icon={<DocumentIcon className="h-5 w-5" />}
+          title="No documents yet"
+          description="Upload your hours, pricing, or policies. Everything the agent says comes from what you put here."
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {documents.map((doc) => (
-            <li
-              key={doc.id}
-              className="flex items-center justify-between rounded-xl border border-ink/10 bg-white px-4 py-3"
-            >
-              <div>
-                <p className="text-sm font-medium text-ink">{doc.filename}</p>
+            <li key={doc.id} className="card flex items-center gap-4 p-4">
+              <span
+                aria-hidden="true"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-mist"
+              >
+                <DocumentIcon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-cream">{doc.filename}</p>
                 <StatusBadge status={doc.status} />
               </div>
               <button
                 onClick={() => handleDelete(doc.id, doc.filename)}
-                className="rounded-full px-2 py-1 text-sm font-medium text-rose transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose/40"
+                aria-label={`Delete ${doc.filename}`}
+                className="btn btn-danger shrink-0 px-3 py-1.5 text-xs"
               >
-                Delete
+                <TrashIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Delete</span>
               </button>
             </li>
           ))}
@@ -153,14 +216,25 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
   );
 }
 
+/*
+ * The dot carries the state as much as the color does, so the badge is still
+ * readable if the hue is hard to distinguish — and "pending" pulses, which
+ * tells you the 3s poll is still watching without needing a spinner.
+ */
 function StatusBadge({ status }: { status: string }) {
-  const styles =
-    status === "done"
-      ? "bg-emerald/10 text-emerald"
-      : status === "failed"
-        ? "bg-rose/10 text-rose"
-        : "bg-amber/10 text-amber";
+  const done = status === "done";
+  const failed = status === "failed";
+  const tone = done
+    ? "border-emerald/25 bg-emerald/10 text-emerald"
+    : failed
+      ? "border-rose/25 bg-rose/10 text-rose"
+      : "border-amber/25 bg-amber/10 text-amber";
+  const dot = done ? "bg-emerald" : failed ? "bg-rose" : "bg-amber animate-pulse";
+
   return (
-    <span className={`mt-0.5 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles}`}>{status}</span>
+    <span className={`badge mt-1 border ${tone}`}>
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      {status}
+    </span>
   );
 }

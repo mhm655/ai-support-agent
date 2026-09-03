@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import EmptyState from "@/components/EmptyState";
+import Skeleton from "@/components/Skeleton";
+import { FormError } from "@/components/FormField";
+import { ArrowLeftIcon, ArrowRightIcon, ConversationIcon } from "@/lib/icons";
 import type { Conversation, Message } from "./types";
 
 export default function ConversationsTab({ agentId }: { agentId: string }) {
@@ -9,24 +13,35 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingThread, setLoadingThread] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<Conversation[]>(`/agents/${agentId}/conversations`)
       .then(setConversations)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load conversations"))
       .finally(() => setLoading(false));
   }, [agentId]);
 
   async function openConversation(id: string) {
     setSelected(id);
-    const data = await apiFetch<Message[]>(`/conversations/${id}/messages`);
-    setMessages(data);
+    setMessages([]);
+    setLoadingThread(true);
+    setError(null);
+    try {
+      setMessages(await apiFetch<Message[]>(`/conversations/${id}/messages`));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load this conversation");
+    } finally {
+      setLoadingThread(false);
+    }
   }
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-2" aria-hidden="true">
+      <div className="flex flex-col gap-2">
         {[0, 1].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
+          <Skeleton key={i} className="h-[72px]" />
         ))}
       </div>
     );
@@ -36,17 +51,27 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
     return (
       <div>
         <button
-          onClick={() => setSelected(null)}
-          className="mb-4 text-sm text-slate-onlight underline-offset-2 hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+          onClick={() => {
+            setSelected(null);
+            setError(null);
+          }}
+          className="focus-ring mb-4 inline-flex items-center gap-1.5 rounded text-sm text-dusk transition hover:text-cream"
         >
-          ← Back to conversations
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back to conversations
         </button>
-        <div className="flex flex-col gap-3 rounded-xl border border-ink/10 bg-white p-4">
+
+        {error && <FormError>{error}</FormError>}
+
+        <div className="card flex flex-col gap-3 p-5">
+          {loadingThread && <p className="text-sm text-dusk">Loading transcript…</p>}
           {messages.map((m) => (
             <div key={m.id} className={m.role === "user" ? "self-end" : "self-start"}>
               <span
-                className={`inline-block max-w-[80%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                  m.role === "user" ? "bg-amber text-ink" : "bg-ink/5 text-ink"
+                className={`inline-block max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                  m.role === "user"
+                    ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
+                    : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
                 }`}
               >
                 {m.content}
@@ -58,14 +83,15 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
     );
   }
 
+  if (error) return <FormError>{error}</FormError>;
+
   if (conversations.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-ink/15 px-6 py-10 text-center">
-        <p className="font-bold text-ink">No conversations yet</p>
-        <p className="mt-1 text-sm text-slate-onlight">
-          Chats from your test panel or the embedded widget will appear here.
-        </p>
-      </div>
+      <EmptyState
+        icon={<ConversationIcon className="h-5 w-5" />}
+        title="No conversations yet"
+        description="Chats from the test panel or the embedded widget will appear here, transcript and all."
+      />
     );
   }
 
@@ -75,10 +101,23 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
         <li key={c.id}>
           <button
             onClick={() => openConversation(c.id)}
-            className="w-full rounded-xl border border-ink/10 bg-white px-4 py-3 text-left text-sm transition hover:border-amber/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+            className="card focus-ring group flex w-full items-center gap-4 p-4 text-left transition hover:border-amber/40 hover:bg-well/60"
           >
-            <p className="font-medium text-ink">Visitor {c.visitor_id?.slice(0, 12) || "unknown"}</p>
-            <p className="text-slate-onlight">{new Date(c.created_at).toLocaleString()}</p>
+            <span
+              aria-hidden="true"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-mist"
+            >
+              <ConversationIcon className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-mono text-[13px] text-cream">
+                {c.visitor_id?.slice(0, 20) || "unknown visitor"}
+              </span>
+              <span className="block text-[13px] text-dusk">
+                {new Date(c.created_at).toLocaleString()}
+              </span>
+            </span>
+            <ArrowRightIcon className="h-4 w-4 shrink-0 text-dusk transition group-hover:translate-x-0.5 group-hover:text-amber" />
           </button>
         </li>
       ))}

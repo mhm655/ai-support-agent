@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { apiFetch } from "@/lib/api";
-import { SpinnerIcon, UserIcon } from "@/lib/icons";
+import DashboardShell from "@/components/DashboardShell";
+import PageHeading from "@/components/PageHeading";
+import EmptyState from "@/components/EmptyState";
+import Skeleton from "@/components/Skeleton";
+import { FormError } from "@/components/FormField";
+import { ArrowRightIcon, ChatIcon, PlusIcon, SpinnerIcon } from "@/lib/icons";
 
 type Agent = {
   id: string;
@@ -65,111 +70,82 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="border-b border-ink/10">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/dashboard" className="font-display text-lg font-bold text-ink">
-            frontdesk<span className="text-amber">.ai</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard/profile"
-              aria-label="Profile"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink transition hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
-            >
-              <UserIcon />
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="rounded-full border border-ink/15 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
-            >
-              Log out
-            </button>
+    <DashboardShell>
+      <PageHeading
+        eyebrow="Workspace"
+        title="Your agents"
+        description="Each agent keeps its own knowledge base and answers as a separate assistant."
+      />
+
+      <form onSubmit={handleCreateAgent} className="card mt-8 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <label htmlFor="new-agent-name" className="sr-only">
+          New agent name
+        </label>
+        <input
+          id="new-agent-name"
+          type="text"
+          placeholder="Name a new agent — e.g. Front desk assistant"
+          value={newAgentName}
+          onChange={(e) => setNewAgentName(e.target.value)}
+          className="field flex-1"
+        />
+        <button
+          type="submit"
+          disabled={creating || !newAgentName.trim()}
+          className="btn btn-primary sm:w-auto"
+        >
+          {creating ? <SpinnerIcon /> : <PlusIcon />}
+          {creating ? "Creating…" : "Create agent"}
+        </button>
+      </form>
+
+      {error && (
+        <div className="mt-4">
+          <FormError>{error}</FormError>
+        </div>
+      )}
+
+      <div className="mt-6">
+        {loading ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[0, 1].map((i) => (
+              <Skeleton key={i} className="h-[104px]" />
+            ))}
           </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold text-ink">Your agents</h1>
-        <p className="mt-1 text-sm text-slate-onlight">
-          Each agent has its own knowledge base and answers as a separate assistant.
-        </p>
-
-        <form onSubmit={handleCreateAgent} className="mt-6 flex gap-2">
-          <label htmlFor="new-agent-name" className="sr-only">
-            New agent name
-          </label>
-          <input
-            id="new-agent-name"
-            type="text"
-            placeholder="e.g. Front desk assistant…"
-            value={newAgentName}
-            onChange={(e) => setNewAgentName(e.target.value)}
-            className="flex-1 rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
+        ) : agents.length === 0 ? (
+          <EmptyState
+            icon={<ChatIcon className="h-5 w-5" />}
+            title="No agents yet"
+            description="Create one above, upload a document, and it will start answering customer questions from your own words."
           />
-          <button
-            type="submit"
-            disabled={creating || !newAgentName.trim()}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {creating && <SpinnerIcon />}
-            {creating ? "Creating…" : "Create agent"}
-          </button>
-        </form>
-
-        {error && (
-          <p role="alert" className="mt-4 text-sm text-rose">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-8">
-          {loading ? (
-            <div className="flex flex-col gap-3" aria-hidden="true">
-              {[0, 1].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
-              ))}
-            </div>
-          ) : agents.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-ink/15 px-6 py-12 text-center">
-              <p className="font-bold text-ink">No agents yet</p>
-              <p className="mt-1 text-sm text-slate-onlight">
-                Create one above to start answering customer questions from your own documents.
-              </p>
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {agents.map((agent) => (
-                <li key={agent.id}>
-                  <Link
-                    href={`/dashboard/agents/${agent.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-ink/10 bg-white px-4 py-3.5 transition hover:border-amber/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {agents.map((agent) => (
+              <li key={agent.id}>
+                <Link
+                  href={`/dashboard/agents/${agent.id}`}
+                  className="card focus-ring group flex h-full items-center gap-4 p-5 transition duration-200 hover:-translate-y-0.5 hover:border-amber/40 hover:bg-well/60"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-amber/25 bg-amber/10 font-display text-base font-bold text-amber"
                   >
-                    <span
-                      aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber/15 text-sm font-bold text-amber"
-                    >
-                      {agent.name.trim().charAt(0).toUpperCase() || "?"}
+                    {agent.name.trim().charAt(0).toUpperCase() || "?"}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-cream">{agent.name}</span>
+                    <span className="block font-mono text-[11px] text-dusk">
+                      Created {new Date(agent.created_at).toLocaleDateString()}
                     </span>
-                    <span>
-                      <p className="font-medium text-ink">{agent.name}</p>
-                      <p className="text-sm text-slate-onlight">
-                        Created {new Date(agent.created_at).toLocaleDateString()}
-                      </p>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </main>
-    </div>
+                  </span>
+                  <ArrowRightIcon className="h-4 w-4 shrink-0 text-dusk transition group-hover:translate-x-0.5 group-hover:text-amber" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </DashboardShell>
   );
 }

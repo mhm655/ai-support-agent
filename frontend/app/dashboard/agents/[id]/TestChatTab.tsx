@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { streamChat } from "@/lib/chat";
+import StatusDot from "@/components/StatusDot";
+import { SendIcon } from "@/lib/icons";
 import type { ChatMessage } from "./types";
+
+const SUGGESTIONS = [
+  "What are your hours?",
+  "Do you take Cigna?",
+  "How much does a cleaning cost?",
+];
 
 // Talks to the SAME public endpoint the embeddable widget uses — this is
 // the fastest way to test an agent works, using the real code path.
@@ -17,14 +25,13 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   // run it exactly once per mount.
   const [visitorId] = useState(() => `preview-${Math.random().toString(36).slice(2)}`);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
+  async function send(text: string) {
     if (!text || sending) return;
 
     setMessages((prev) => [...prev, { role: "user", text }]);
@@ -67,49 +74,106 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   }
 
   return (
-    <div>
+    <div className="card overflow-hidden">
+      <div className="flex items-center gap-2.5 border-b border-line bg-well/50 px-4 py-3">
+        <StatusDot />
+        <span className="text-[13px] font-medium text-cream">Preview</span>
+        <span className="ml-auto font-mono text-[11px] text-dusk">
+          same endpoint as the live widget
+        </span>
+      </div>
+
       <div
         ref={scrollRef}
         role="log"
         aria-live="polite"
-        className="mb-4 flex h-96 flex-col gap-3 overflow-y-auto rounded-xl border border-ink/10 bg-white p-4"
+        className="flex h-[26rem] flex-col gap-3 overflow-y-auto p-5"
       >
-        {messages.length === 0 && (
-          <p className="text-sm text-slate-onlight">
-            Send a message to test this agent as a customer would see it.
-          </p>
-        )}
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "self-end" : "self-start"}>
-            <span
-              className={`inline-block max-w-[80%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                m.role === "user" ? "bg-amber text-ink" : "bg-ink/5 text-ink"
-              }`}
-            >
-              {m.text || "…"}
-            </span>
+        {messages.length === 0 ? (
+          <div className="m-auto max-w-xs text-center">
+            <p className="text-sm leading-relaxed text-mist">
+              Ask something a customer would ask. Answers come from the documents you uploaded.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    setInput(s);
+                    inputRef.current?.focus();
+                  }}
+                  className="focus-ring rounded-full border border-line bg-well px-3 py-1.5 text-[12.5px] text-mist transition hover:border-amber/40 hover:text-cream"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-        ))}
+        ) : (
+          messages.map((m, i) => {
+            // An empty assistant bubble means the request is in flight: the
+            // first token hasn't landed yet. Show a typing indicator rather
+            // than an ellipsis that looks like part of the answer.
+            const pending = m.role === "assistant" && m.text === "";
+            return (
+              <div key={i} className={m.role === "user" ? "self-end" : "self-start"}>
+                <span
+                  className={`inline-block max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    m.role === "user"
+                      ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
+                      : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
+                  }`}
+                >
+                  {pending ? <TypingDots /> : m.text}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
-      <form onSubmit={handleSend} className="flex gap-2">
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          send(input.trim());
+        }}
+        className="flex gap-2 border-t border-line bg-well/30 p-3"
+      >
         <label htmlFor="test-chat-input" className="sr-only">
           Ask something a customer might ask
         </label>
         <input
           id="test-chat-input"
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask something a customer might ask…"
-          className="flex-1 rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
+          className="field flex-1 rounded-full"
         />
         <button
           type="submit"
           disabled={sending || !input.trim()}
-          className="shrink-0 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Send message"
+          className="btn btn-primary h-10 w-10 p-0"
         >
-          Send
+          <SendIcon className="h-4 w-4" />
         </button>
       </form>
     </div>
+  );
+}
+
+function TypingDots() {
+  return (
+    <span className="flex items-center gap-1 py-1" aria-label="Agent is typing">
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          className="h-1.5 w-1.5 animate-bounce rounded-full bg-dusk"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </span>
   );
 }

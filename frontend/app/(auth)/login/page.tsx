@@ -1,22 +1,20 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { apiFetch, ApiError } from "@/lib/api";
-import { EyeIcon, EyeOffIcon, SpinnerIcon } from "@/lib/icons";
+import AuthLayout from "@/components/AuthLayout";
+import { FormError, PasswordField, TextField } from "@/components/FormField";
+import { SpinnerIcon } from "@/lib/icons";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const emailId = useId();
-  const passwordId = useId();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,83 +56,41 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-cream px-4 py-12">
-      <Link href="/" className="mb-8 font-display text-lg font-bold text-ink">
-        frontdesk<span className="text-amber">.ai</span>
-      </Link>
-
-      <div className="w-full max-w-sm rounded-xl border border-ink/10 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-ink">Log in</h1>
-        <p className="mt-1 text-sm text-slate-onlight">Welcome back.</p>
-
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={emailId} className="text-sm font-medium text-ink">
-              Email
-            </label>
-            <input
-              id={emailId}
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              spellCheck={false}
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={passwordId} className="text-sm font-medium text-ink">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id={passwordId}
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                spellCheck={false}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 pr-10 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                aria-pressed={showPassword}
-                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-onlight transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/40"
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <p role="alert" className="text-sm text-rose">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 flex items-center justify-center gap-2 rounded-full bg-amber px-4 py-2.5 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading && <SpinnerIcon />}
-            {loading ? "Logging in…" : "Log in"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-onlight">
+    <AuthLayout
+      title="Log in"
+      subtitle="Welcome back."
+      footer={
+        <>
           No account?{" "}
-          <Link href="/signup" className="font-medium text-ink underline underline-offset-2 hover:text-amber">
+          <Link
+            href="/signup"
+            className="focus-ring rounded font-medium text-cream underline decoration-amber/60 underline-offset-4 transition hover:text-amber"
+          >
             Sign up
           </Link>
-        </p>
-      </div>
-    </main>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-4" noValidate>
+        <TextField
+          label="Email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={setEmail}
+        />
+
+        <PasswordField value={password} onChange={setPassword} autoComplete="current-password" />
+
+        {error && <FormError>{error}</FormError>}
+
+        <button type="submit" disabled={loading} className="btn btn-primary mt-2 w-full">
+          {loading && <SpinnerIcon />}
+          {loading ? "Logging in…" : "Log in"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

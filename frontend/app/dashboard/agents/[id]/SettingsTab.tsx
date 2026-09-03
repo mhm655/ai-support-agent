@@ -2,7 +2,10 @@
 
 import { useEffect, useId, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import { SpinnerIcon } from "@/lib/icons";
+import CopyButton from "@/components/CopyButton";
+import Skeleton from "@/components/Skeleton";
+import { FormError } from "@/components/FormField";
+import { CheckIcon, CodeIcon, SpinnerIcon } from "@/lib/icons";
 import type { Agent } from "./types";
 
 const PERSONALITY_MAX = 1000;
@@ -33,7 +36,9 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
       .finally(() => setLoading(false));
   }, [agentId]);
 
-  const dirty = agent !== null && (personality !== (agent.personality ?? "") || instructions !== (agent.instructions ?? ""));
+  const dirty =
+    agent !== null &&
+    (personality !== (agent.personality ?? "") || instructions !== (agent.instructions ?? ""));
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -62,91 +67,135 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4" aria-hidden="true">
-        <div className="h-24 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
-        <div className="h-40 animate-pulse rounded-xl border border-ink/10 bg-ink/5" />
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-40" />
+        <Skeleton className="h-64" />
       </div>
     );
   }
 
-  if (loadError) {
-    return (
-      <p role="alert" className="text-sm text-rose">
-        {loadError}
-      </p>
-    );
-  }
+  if (loadError) return <FormError>{loadError}</FormError>;
 
   return (
-    <form onSubmit={handleSave} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={personalityId} className="text-sm font-medium text-ink">
-          Personality &amp; tone
-        </label>
-        <p className="text-sm text-slate-onlight">
-          How the agent should come across — e.g. &ldquo;warm and casual&rdquo; or &ldquo;concise and
-          professional&rdquo;.
-        </p>
-        <textarea
-          id={personalityId}
-          rows={3}
-          maxLength={PERSONALITY_MAX}
-          value={personality}
-          onChange={(e) => {
-            setPersonality(e.target.value);
-            setSaved(false);
-          }}
-          placeholder="e.g. Friendly and reassuring — most visitors are a little anxious about their appointment."
-          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-        />
-        <p className="text-right text-xs text-slate-onlight">
-          {personality.length}/{PERSONALITY_MAX}
-        </p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <InstallCard agentId={agentId} />
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={instructionsId} className="text-sm font-medium text-ink">
-          Business-specific instructions
-        </label>
-        <p className="text-sm text-slate-onlight">
-          Rules the agent should always follow — things it should never say, how to handle specific
-          situations, escalation policy, and so on. This gets added to every conversation alongside
-          your uploaded documents.
-        </p>
-        <textarea
-          id={instructionsId}
-          rows={8}
-          maxLength={INSTRUCTIONS_MAX}
-          value={instructions}
-          onChange={(e) => {
-            setInstructions(e.target.value);
-            setSaved(false);
-          }}
-          placeholder="e.g. Never quote a price for a procedure that isn't in the uploaded price list — offer to have someone follow up instead."
-          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-slate-onlight/60 focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/40"
-        />
-        <p className="text-right text-xs text-slate-onlight">
-          {instructions.length}/{INSTRUCTIONS_MAX}
-        </p>
-      </div>
+      <form onSubmit={handleSave} className="card flex flex-col gap-7 p-6">
+        <div className="flex flex-col gap-2">
+          <label htmlFor={personalityId} className="label">
+            Personality &amp; tone
+          </label>
+          <p className="hint">
+            How the agent should come across — e.g. &ldquo;warm and casual&rdquo; or &ldquo;concise
+            and professional&rdquo;.
+          </p>
+          <textarea
+            id={personalityId}
+            rows={3}
+            maxLength={PERSONALITY_MAX}
+            value={personality}
+            onChange={(e) => {
+              setPersonality(e.target.value);
+              setSaved(false);
+            }}
+            placeholder="e.g. Friendly and reassuring — most visitors are a little anxious about their appointment."
+            className="field resize-y"
+          />
+          <CharCount value={personality.length} max={PERSONALITY_MAX} />
+        </div>
 
-      {saveError && (
-        <p role="alert" className="text-sm text-rose">
-          {saveError}
-        </p>
-      )}
+        <div className="flex flex-col gap-2">
+          <label htmlFor={instructionsId} className="label">
+            Business-specific instructions
+          </label>
+          <p className="hint">
+            Rules the agent should always follow — things it should never say, how to handle specific
+            situations, escalation policy. This is added to every conversation alongside your
+            uploaded documents.
+          </p>
+          <textarea
+            id={instructionsId}
+            rows={8}
+            maxLength={INSTRUCTIONS_MAX}
+            value={instructions}
+            onChange={(e) => {
+              setInstructions(e.target.value);
+              setSaved(false);
+            }}
+            placeholder="e.g. Never quote a price for a procedure that isn't in the uploaded price list — offer to have someone follow up instead."
+            className="field resize-y"
+          />
+          <CharCount value={instructions.length} max={INSTRUCTIONS_MAX} />
+        </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={saving || !dirty}
-          className="flex items-center gap-2 rounded-full bg-amber px-4 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving && <SpinnerIcon />}
-          {saving ? "Saving…" : "Save changes"}
-        </button>
-        {saved && <span className="text-sm text-emerald">Saved</span>}
+        {saveError && <FormError>{saveError}</FormError>}
+
+        <div className="flex items-center gap-3">
+          <button type="submit" disabled={saving || !dirty} className="btn btn-primary">
+            {saving && <SpinnerIcon />}
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+          {saved && (
+            <span className="flex items-center gap-1.5 text-sm text-emerald">
+              <CheckIcon className="h-4 w-4" />
+              Saved
+            </span>
+          )}
+          {dirty && !saving && <span className="text-sm text-dusk">Unsaved changes</span>}
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/*
+ * The embed snippet, filled in with this agent's real id and the API base
+ * this deployment actually talks to. The landing page advertises a one-line
+ * install, but the dashboard previously never handed anyone that line —
+ * you had to go read widget.js to find out what attributes it wanted.
+ */
+function InstallCard({ agentId }: { agentId: string }) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Read on the client only. Reading window.location during render would
+  // make the server-rendered markup ("") disagree with the first client
+  // render, which React reports as a hydration mismatch.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    // react-hooks/set-state-in-effect can't tell this apart from a
+    // cascading update. Reading a browser-only value after mount is exactly
+    // what the effect is for here — doing it during render instead is the
+    // thing that would actually be a bug.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrigin(window.location.origin);
+  }, []);
+
+  const snippet = `<script src="${origin}/widget.js"\n        data-agent-id="${agentId}"\n        data-api-url="${apiUrl}"></script>`;
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line bg-well/50 px-5 py-3">
+        <CodeIcon className="h-4 w-4 text-amber" />
+        <span className="text-[13px] font-medium text-cream">Install on your site</span>
+        <CopyButton value={snippet} label="Copy snippet" className="ml-auto" />
       </div>
-    </form>
+      <div className="p-5">
+        <p className="hint mb-3">
+          Paste this just before the closing <code className="font-mono text-amber-soft">&lt;/body&gt;</code>{" "}
+          tag on any page you want the agent to appear on.
+        </p>
+        <pre className="overflow-x-auto rounded-xl border border-line bg-void p-4 font-mono text-[12px] leading-relaxed text-mist">
+          <code>{snippet}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function CharCount({ value, max }: { value: number; max: number }) {
+  const near = value > max * 0.9;
+  return (
+    <p className={`text-right font-mono text-[11px] ${near ? "text-amber" : "text-dusk"}`}>
+      {value}/{max}
+    </p>
   );
 }
