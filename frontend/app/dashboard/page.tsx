@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <input
           id="new-agent-name"
           type="text"
-          placeholder="Name a new agent — e.g. Front desk assistant"
+          placeholder="Name a new agent, e.g. Front desk assistant"
           value={newAgentName}
           onChange={(e) => setNewAgentName(e.target.value)}
           className="field flex-1"
