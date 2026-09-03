@@ -139,7 +139,7 @@ export default function ProfilePage() {
               </span>
               <div>
                 <p className="font-display text-lg font-bold text-cream">
-                  {business ? new Date(business.created_at).toLocaleDateString() : "—"}
+                  {business ? new Date(business.created_at).toLocaleDateString() : "Unknown"}
                 </p>
                 <p className="text-sm text-dusk">member since</p>
               </div>

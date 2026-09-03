@@ -1,7 +1,7 @@
 /*
- * The small pulsing "live" dot used in chat headers. Split out because the
- * landing hero, the dashboard test-chat panel and the widget all want the
- * exact same affordance.
+ * The small pulsing "live" dot. Conveys real state (this preview is
+ * connected and answering) rather than decorating a label, which is the
+ * only reason to use a coloured dot at all.
  */
 export default function StatusDot({ className = "" }: { className?: string }) {
   return (

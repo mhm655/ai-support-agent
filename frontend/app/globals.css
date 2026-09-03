@@ -107,6 +107,12 @@ body {
 
 /* Sweeps a highlight across loading placeholders so a slow request reads as
    "working" rather than "stuck". */
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes shimmer {
   100% { transform: translateX(100%); }
 }
@@ -196,11 +202,40 @@ body {
 
 @layer utilities {
   /*
-   * Scroll-reveal states. These live in CSS rather than as toggled Tailwind
-   * classes so the reduced-motion rule below can force the visible state
-   * unconditionally — otherwise content would stay at opacity 0 for anyone
-   * whose IntersectionObserver never fires (no support, or a document that
-   * never paints, such as a screenshotting bot).
+   * Hero entrance. Deliberately CSS rather than Motion, and deliberately
+   * without animation-fill-mode.
+   *
+   * With no fill mode the element's resting style is the visible one, so an
+   * animation that never runs (JS disabled, a prerender that does not paint,
+   * a bot capturing the page for a social card) leaves the most important
+   * content on the site on screen rather than invisible. Above the fold,
+   * failing visible matters more than the animation.
+   *
+   * The cascade comes from varying duration, not delay: every element starts
+   * at once and settles in sequence. A delay would leave later elements
+   * visible, then blink to transparent when their animation finally began.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-in {
+      animation: hero-rise 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-2 {
+      animation: hero-rise 780ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-3 {
+      animation: hero-rise 940ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-4 {
+      animation: hero-rise 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
+  /*
+   * Scroll-reveal states, used by the dashboard's list entries. The two
+   * visual states live here rather than as toggled Tailwind classes so the
+   * reduced-motion rule below can force the visible state unconditionally.
+   * If visibility depended on JS alone, anything that never fires the
+   * observer would leave content permanently at opacity 0.
    */
   .reveal {
     opacity: 0;
@@ -219,8 +254,8 @@ body {
     }
   }
 
-  /* Applied to list rows and panels as they first appear. The delay is set
-     inline by the caller so a list staggers instead of popping as one block. */
+  /* Applied to list rows as they first appear. The delay is set inline by
+     the caller so a list staggers instead of popping as one block. */
   .enter {
     animation: rise-in 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
@@ -243,33 +278,19 @@ body {
     animation: shimmer 1.6s infinite;
   }
 
-  /* Soft radial accent light. Used behind hero/brand areas to stop large
-     flat navy fields from looking like an unstyled background. */
-  .glow-amber {
-    background-image: radial-gradient(
-      60% 60% at 50% 0%,
-      rgb(232 163 61 / 0.16) 0%,
-      rgb(232 163 61 / 0) 70%
-    );
+  /* Horizontal card rail. Scroll-snap rather than a three-column grid: an
+     equal-thirds feature row is the most recognisable generated-landing-page
+     layout there is, and a rail also handles a fourth card without a
+     redesign. */
+  .rail {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
-
-  /* Faint grid, drawn with gradients rather than an asset so there's no
-     extra network request and it scales with the layout. */
-  .grid-lines {
-    background-image:
-      linear-gradient(to right, rgb(244 242 236 / 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(244 242 236 / 0.035) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(70% 60% at 50% 30%, #000 0%, transparent 100%);
-    mask-image: radial-gradient(70% 60% at 50% 30%, #000 0%, transparent 100%);
+  .rail::-webkit-scrollbar {
+    display: none;
   }
-
-  /* Gradient text for the one headline phrase that carries the accent. */
-  .text-gradient {
-    background: linear-gradient(180deg, var(--color-cream) 0%, #b9bdd4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .rail > * {
+    scroll-snap-align: start;
   }
 }
 

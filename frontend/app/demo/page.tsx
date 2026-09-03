@@ -23,16 +23,13 @@ const STEPS = [
   {
     icon: ChatIcon,
     title: "The answer is grounded",
-    body: "Gemini writes the reply from the passages that came back — and says so when the docs don't cover it.",
+    body: "Gemini writes the reply from the passages that came back, and says so when the docs don't cover it.",
   },
 ];
 
 export default function DemoPage() {
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div aria-hidden="true" className="glow-amber pointer-events-none absolute inset-x-0 top-0 h-[460px]" />
-      <div aria-hidden="true" className="grid-lines pointer-events-none absolute inset-0" />
-
       <div className="relative mx-auto max-w-2xl px-5 py-10 sm:px-8 sm:py-16">
         <div className="flex items-center justify-between gap-4">
           <BrandLink />
@@ -47,12 +44,12 @@ export default function DemoPage() {
 
         <p className="eyebrow mt-14">Live demo</p>
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.06] tracking-[-0.03em] sm:text-5xl">
-          <span className="text-gradient">Ask it something</span>
+          <span>Ask it something</span>
           <br />
           <span className="text-amber">it wasn&apos;t told to expect.</span>
         </h1>
         <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-mist">
-          This is a real agent running the same pipeline every agent on this site uses — not a canned
+          This is a real agent running the same pipeline every agent on this site uses, not a canned
           script. Try asking what insurance is accepted, or when they&apos;re open on a Saturday.
         </p>
 
@@ -65,7 +62,7 @@ export default function DemoPage() {
           </p>
         ) : (
           <p className="mt-6 rounded-2xl border border-amber/30 bg-amber/[0.07] px-4 py-3.5 text-sm leading-relaxed text-amber">
-            Demo agent not configured — set{" "}
+            Demo agent not configured. Set{" "}
             <code className="font-mono">NEXT_PUBLIC_DEMO_AGENT_ID</code> in the environment to enable
             this page.
           </p>

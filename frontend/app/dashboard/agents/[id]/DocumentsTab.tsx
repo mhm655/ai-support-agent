@@ -115,7 +115,7 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
 
       if (fileInputRef.current) fileInputRef.current.value = "";
       setSelectedName(null);
-      toast({ title: "Uploaded", description: "Processing now — this usually takes a few seconds." });
+      toast({ title: "Uploaded", description: "Processing now. This usually takes a few seconds." });
       await load();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed";

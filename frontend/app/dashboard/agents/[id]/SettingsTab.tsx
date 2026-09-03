@@ -91,7 +91,7 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
             Personality &amp; tone
           </label>
           <p className="hint">
-            How the agent should come across — e.g. &ldquo;warm and casual&rdquo; or &ldquo;concise
+            How the agent should come across, for example &ldquo;warm and casual&rdquo; or &ldquo;concise
             and professional&rdquo;.
           </p>
           <textarea
@@ -103,7 +103,7 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
               setPersonality(e.target.value);
               setSaved(false);
             }}
-            placeholder="e.g. Friendly and reassuring — most visitors are a little anxious about their appointment."
+            placeholder="e.g. Friendly and reassuring. Most visitors are a little anxious about their appointment."
             className="field resize-y"
           />
           <CharCount value={personality.length} max={PERSONALITY_MAX} />
@@ -114,7 +114,7 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
             Business-specific instructions
           </label>
           <p className="hint">
-            Rules the agent should always follow — things it should never say, how to handle specific
+            Rules the agent should always follow: things it should never say, how to handle specific
             situations, escalation policy. This is added to every conversation alongside your
             uploaded documents.
           </p>
@@ -127,7 +127,7 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
               setInstructions(e.target.value);
               setSaved(false);
             }}
-            placeholder="e.g. Never quote a price for a procedure that isn't in the uploaded price list — offer to have someone follow up instead."
+            placeholder="e.g. Never quote a price for a procedure that isn't in the uploaded price list. Offer to have someone follow up instead."
             className="field resize-y"
           />
           <CharCount value={instructions.length} max={INSTRUCTIONS_MAX} />

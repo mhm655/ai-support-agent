@@ -29,18 +29,15 @@ export default function AuthLayout({
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
       {/* Brand rail */}
       <aside className="relative hidden overflow-hidden border-r border-line bg-navy lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <div aria-hidden="true" className="glow-amber pointer-events-none absolute inset-x-0 top-0 h-[420px]" />
-        <div aria-hidden="true" className="grid-lines pointer-events-none absolute inset-0" />
-
         <div className="relative">
           <BrandLink />
         </div>
 
         <div className="relative max-w-md">
           <h2 className="font-display text-[34px] font-extrabold leading-[1.1] tracking-[-0.03em]">
-            <span className="text-gradient">Someone&apos;s always</span>
+            <span>Someone&apos;s always</span>
             <br />
-            <span className="text-gradient">at the desk.</span>
+            <span>at the desk.</span>
             <br />
             <span className="text-amber">Even at 2am.</span>
           </h2>
@@ -60,13 +57,11 @@ export default function AuthLayout({
           </ul>
         </div>
 
-        <p className="relative font-mono text-[11px] text-dusk">frontdesk.ai — a portfolio project</p>
+        <p className="relative font-mono text-[11px] text-dusk">frontdesk.ai, a portfolio project</p>
       </aside>
 
       {/* Form panel */}
       <main className="relative flex flex-col items-center justify-center px-5 py-14 sm:px-8">
-        <div aria-hidden="true" className="glow-amber pointer-events-none absolute inset-x-0 top-0 h-64 lg:hidden" />
-
         <div className="relative w-full max-w-sm">
           <div className="mb-8 flex justify-center lg:hidden">
             <BrandLink />

@@ -18,7 +18,7 @@
   const scriptTag = document.currentScript;
   const agentId = scriptTag.getAttribute("data-agent-id");
   const apiUrl = scriptTag.getAttribute("data-api-url") || "http://localhost:8000";
-  const greetingText = scriptTag.getAttribute("data-greeting") || "Questions? Ask away — I answer instantly.";
+  const greetingText = scriptTag.getAttribute("data-greeting") || "Questions? Ask away. I answer instantly.";
   const greetingDelay = Number(scriptTag.getAttribute("data-greeting-delay")) || 8000;
 
   if (!agentId) {
@@ -276,7 +276,7 @@
     </div>
     <div class="aiw-messages" role="log" aria-live="polite">
       <div>
-        <p class="aiw-empty">Ask us anything — hours, pricing, availability.</p>
+        <p class="aiw-empty">Ask us anything: hours, pricing, availability.</p>
         <div class="aiw-chips"></div>
       </div>
     </div>

@@ -34,10 +34,6 @@ export default function DashboardShell({
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* Accent wash behind the top of every page, so the header doesn't sit
-          on a dead flat field. Purely decorative and non-interactive. */}
-      <div aria-hidden="true" className="glow-amber pointer-events-none absolute inset-x-0 top-0 h-72" />
-
       <header className="sticky top-0 z-30 border-b border-line bg-void/80 backdrop-blur-xl">
         <div className={`mx-auto flex w-full ${width} items-center gap-4 px-5 py-3 sm:px-8`}>
           <BrandLink href="/dashboard" />
@@ -81,7 +77,7 @@ export default function DashboardShell({
 
       <footer className="relative border-t border-line px-5 py-6 sm:px-8">
         <p className="mx-auto max-w-5xl font-mono text-[11px] text-dusk">
-          frontdesk.ai — a portfolio project
+          frontdesk.ai, a portfolio project
         </p>
       </footer>
     </div>

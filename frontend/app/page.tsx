@@ -1,82 +1,70 @@
 import Link from "next/link";
-import Reveal from "@/components/Reveal";
-import HeroTranscript from "@/components/HeroTranscript";
+import {
+  ArrowRight,
+  ChatCircleDots,
+  Question,
+  ShieldCheck,
+  UserFocus,
+} from "@phosphor-icons/react/dist/ssr";
+import HeroPanel from "@/components/marketing/HeroPanel";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 import CopyButton from "@/components/CopyButton";
 import { BrandLink } from "@/components/Brand";
-import {
-  ArrowRightIcon,
-  ChatIcon,
-  ClockIcon,
-  CodeIcon,
-  ConversationIcon,
-  DocumentIcon,
-  ShieldIcon,
-  SparkIcon,
-  UserIcon,
-} from "@/lib/icons";
+
+// Wired through so the hero can talk to the real demo agent when one is
+// configured, and degrade to the scripted loop when it is not.
+const DEMO_AGENT_ID = process.env.NEXT_PUBLIC_DEMO_AGENT_ID;
 
 const EMBED_SNIPPET = `<script src="https://frontdesk.ai/widget.js"
         data-agent-id="YOUR_AGENT_ID"></script>`;
+
+// One label per intent, used identically in the nav, the hero and the
+// closing section. Three phrasings of "sign up" reads as three offers.
+const CTA_SIGNUP = "Get started free";
+const CTA_DEMO = "Try the live demo";
+
+const STACK = [
+  { name: "Next.js", slug: "nextdotjs" },
+  { name: "FastAPI", slug: "fastapi" },
+  { name: "PostgreSQL", slug: "postgresql" },
+  { name: "Supabase", slug: "supabase" },
+  { name: "Google Gemini", slug: "googlegemini" },
+  { name: "Vercel", slug: "vercel" },
+];
 
 const STEPS = [
   {
     n: "01",
     title: "Upload what you already have",
-    body: "Price lists, hours, insurance info, FAQs — a PDF or a text file. No formatting, no tagging, no rewriting it into a bot script.",
+    body: "Price lists, hours, insurance details, FAQs. A PDF or a text file. No formatting, no tagging, no rewriting it into a script.",
   },
   {
     n: "02",
     title: "It reads and indexes them",
-    body: "Each document is split into passages and embedded, so a question retrieves the passages that actually answer it before a single word is generated.",
+    body: "Each document is split into passages and embedded, so a question retrieves the passages that answer it before a word is generated.",
   },
   {
     n: "03",
     title: "Paste one line on your site",
-    body: "A single script tag. Works on Squarespace, WordPress, a static page — nobody needs to touch a framework.",
-  },
-];
-
-const CAPABILITIES = [
-  {
-    icon: ChatIcon,
-    title: "Answers from your documents",
-    body: "Pricing, hours, policies, what insurance you take — drawn from the files you uploaded, not invented.",
-  },
-  {
-    icon: UserIcon,
-    title: "Captures the lead",
-    body: "When a visitor wants to book, it collects a name, an email and what they are after, and files it in your dashboard.",
-  },
-  {
-    icon: ConversationIcon,
-    title: "Holds the thread",
-    body: "Follow-up questions keep their context. Nobody has to repeat which appointment they were asking about.",
-  },
-  {
-    icon: ShieldIcon,
-    title: "Admits what it does not know",
-    body: "If the answer is not in your documents, it says so and offers a hand-off, instead of confidently making something up.",
+    body: "A single script tag. It works on Squarespace, WordPress or a plain static page. Nobody needs to touch a framework.",
   },
 ];
 
 const USE_CASES = [
   {
-    icon: ShieldIcon,
-    name: "Dental & medical",
+    name: "Dental and medical",
     detail: "Insurance questions, appointment requests, after-hours coverage.",
-    line: "“Do you take Delta Dental?”",
+    asked: "Do you take Delta Dental?",
   },
   {
-    icon: SparkIcon,
-    name: "Salons & spas",
+    name: "Salons and spas",
     detail: "Service menus, pricing, and booking interest captured overnight.",
-    line: "“How much is a balayage?”",
+    asked: "How much is a balayage?",
   },
   {
-    icon: ClockIcon,
     name: "Home services",
-    detail: "Quote requests, service areas, and callbacks scheduled while you are on a job.",
-    line: "“Do you cover the east side?”",
+    detail: "Quote requests, service areas, and callbacks while you are on a job.",
+    asked: "Do you cover the east side?",
   },
 ];
 
@@ -87,7 +75,7 @@ const INTERNALS = [
   },
   {
     title: "Streamed token by token",
-    body: "Replies arrive over Server-Sent Events as they are generated. Failures stream too — an exhausted API quota shows up as a readable message, not a socket that quietly dies.",
+    body: "Replies arrive over Server-Sent Events as they are generated. Failures stream too, so an exhausted API quota shows up as a readable message rather than a socket that quietly dies.",
   },
   {
     title: "Lead capture by function call",
@@ -99,21 +87,14 @@ const INTERNALS = [
   },
 ];
 
-// Wired through from the server component so the hero can talk to the real
-// demo agent when one is configured, and degrade to the scripted loop when
-// it isn't — rather than faking a live conversation.
-const DEMO_AGENT_ID = process.env.NEXT_PUBLIC_DEMO_AGENT_ID;
-
-const STACK = ["Next.js", "FastAPI", "Postgres + pgvector", "Supabase Auth", "Gemini", "SSE streaming"];
-
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* ---------------------------------------------------------------- Nav */}
-      <header className="sticky top-0 z-40 border-b border-line/70 bg-void/75 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
+      {/* Nav: single line, 64px tall. */}
+      <header className="sticky top-0 z-40 border-b border-line/70 bg-void/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[78rem] items-center justify-between px-5 sm:px-8">
           <BrandLink />
-          <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
+          <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
             <a href="#how-it-works" className="focus-ring rounded text-sm text-mist transition hover:text-cream">
               How it works
             </a>
@@ -121,10 +102,10 @@ export default function LandingPage() {
               Under the hood
             </a>
             <Link href="/demo" className="focus-ring rounded text-sm text-mist transition hover:text-cream">
-              Live demo
+              Demo
             </Link>
           </nav>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <Link
               href="/login"
               className="focus-ring rounded-full px-3 py-1.5 text-sm text-mist transition hover:text-cream"
@@ -132,286 +113,324 @@ export default function LandingPage() {
               Log in
             </Link>
             <Link href="/signup" className="btn btn-primary px-4 py-2 text-sm">
-              Get started
+              {CTA_SIGNUP}
             </Link>
           </div>
         </div>
       </header>
 
-      {/* -------------------------------------------------------------- Hero */}
-      <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="glow-amber pointer-events-none absolute inset-x-0 top-0 h-[520px]" />
-        <div aria-hidden="true" className="grid-lines pointer-events-none absolute inset-0" />
-
-        <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 px-5 pt-16 pb-20 sm:px-8 md:grid-cols-[1.05fr_0.95fr] md:pt-24 md:pb-28">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-3 py-1.5 text-[12px] text-mist backdrop-blur">
-              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber" />
-              Answers from your documents — not from guesswork
-            </span>
-
-            <h1 className="mt-6 font-display text-[42px] font-extrabold leading-[1.04] tracking-[-0.03em] sm:text-6xl">
-              <span className="text-gradient">Someone&apos;s always</span>
-              <br />
-              <span className="text-gradient">at the desk.</span>
+      {/* ============================================= 1. Hero (split) === */}
+      <section className="mx-auto grid w-full max-w-[78rem] grid-cols-1 items-center gap-12 px-5 pt-16 pb-20 sm:px-8 lg:grid-cols-[1fr_26rem] lg:gap-16 lg:pt-24 lg:pb-28">
+        <div>
+          <div className="hero-in">
+            {/* Two lines at desktop. The scale is deliberately restrained:
+                the accent colour carries the emphasis, not raw size. */}
+            <h1 className="font-display text-[2.25rem] leading-[1.06] font-extrabold tracking-[-0.03em] text-cream sm:text-[2.75rem] lg:text-[3.25rem]">
+              Someone&apos;s always at the desk.
               <br />
               <span className="text-amber">Even at 2am.</span>
             </h1>
+          </div>
 
-            <p className="mt-6 max-w-[30rem] text-[17px] leading-relaxed text-mist">
-              An AI front desk trained on your own hours, pricing and policies. It answers, it books,
-              and it hands you the lead in the morning.
-            </p>
-
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link href="/signup" className="btn btn-primary px-6 py-3 text-[15px]">
-                Get started free
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <Link href="/demo" className="btn btn-ghost px-6 py-3 text-[15px]">
-                Try the live demo
-              </Link>
-            </div>
-
-            <p className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-dusk">
-              <span className="inline-flex items-center gap-1.5">
-                <ClockIcon className="h-3.5 w-3.5 text-amber" /> Live in about five minutes
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <CodeIcon className="h-3.5 w-3.5 text-amber" /> One script tag
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <DocumentIcon className="h-3.5 w-3.5 text-amber" /> PDF, .txt or .md
-              </span>
+          <div className="hero-in-2">
+            <p className="mt-7 max-w-[32rem] text-[1.0625rem] leading-relaxed text-mist">
+              An AI front desk trained on your hours, pricing and policies. It answers, books, and
+              captures the lead.
             </p>
           </div>
 
-          <div className="flex justify-center md:justify-end">
-            <HeroTranscript demoAgentId={DEMO_AGENT_ID} />
+          <div className="hero-in-3 mt-9 flex flex-wrap items-center gap-3">
+            <Link href="/signup" className="btn btn-primary px-6 py-3 text-[15px]">
+              {CTA_SIGNUP}
+              <ArrowRight weight="bold" className="h-4 w-4" />
+            </Link>
+            <Link href="/demo" className="btn btn-ghost px-6 py-3 text-[15px]">
+              {CTA_DEMO}
+            </Link>
           </div>
         </div>
-      </section>
 
-      {/* ------------------------------------------------------ Embed snippet */}
-      <section className="relative border-y border-line bg-navy">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <Reveal>
-            <p className="eyebrow">The whole install</p>
-            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-[28px]">
-              This is the entire integration.
-            </h2>
-            <p className="mt-3 text-[15px] leading-relaxed text-mist">
-              No SDK, no npm install, no framework opinion. Paste it before the closing{" "}
-              <code className="rounded bg-well px-1.5 py-0.5 font-mono text-[13px] text-amber-soft">
-                &lt;/body&gt;
-              </code>{" "}
-              tag and the widget is live on the site you already have.
-            </p>
-          </Reveal>
-
-          <Reveal delayMs={120}>
-            <div className="card overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-line bg-well/50 px-4 py-2.5">
-                <span className="flex gap-1.5" aria-hidden="true">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose/60" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber/60" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald/60" />
-                </span>
-                <span className="font-mono text-[11px] text-dusk">index.html</span>
-                <CopyButton value={EMBED_SNIPPET} className="ml-auto" />
-              </div>
-              <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed sm:text-[13px]">
-                <code>
-                  <span className="text-dusk">&lt;</span>
-                  <span className="text-amber">script</span>{" "}
-                  <span className="text-emerald">src</span>
-                  <span className="text-dusk">=</span>
-                  <span className="text-cream">&quot;https://frontdesk.ai/widget.js&quot;</span>
-                  {"\n        "}
-                  <span className="text-emerald">data-agent-id</span>
-                  <span className="text-dusk">=</span>
-                  <span className="text-cream">&quot;YOUR_AGENT_ID&quot;</span>
-                  <span className="text-dusk">&gt;&lt;/</span>
-                  <span className="text-amber">script</span>
-                  <span className="text-dusk">&gt;</span>
-                </code>
-              </pre>
-            </div>
-          </Reveal>
+        <div className="hero-in-4 flex justify-center lg:justify-end">
+          <HeroPanel demoAgentId={DEMO_AGENT_ID} />
         </div>
       </section>
 
-      {/* ------------------------------------------------------ How it works */}
-      {/* Asymmetric on purpose: a sticky heading rail beside a vertical
-          timeline, rather than the three-equal-columns feature row that every
-          generated landing page reaches for. */}
-      <section id="how-it-works" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <Reveal>
-              <p className="eyebrow">How it works</p>
-              <h2 className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight sm:text-[38px]">
-                Three steps, and none of them is &ldquo;write a chatbot script&rdquo;.
-              </h2>
-              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-mist">
-                You already wrote your policies down once. This reads them, instead of asking you to
-                turn them into a decision tree.
-              </p>
-            </Reveal>
-          </div>
-
-          <ol className="relative">
-            {/* The connecting rail. Stops short of the last marker so it reads
-                as a path with an end rather than a stray border. */}
-            <span
-              aria-hidden="true"
-              className="absolute top-4 bottom-24 left-[19px] w-px bg-gradient-to-b from-amber/50 via-line-bright to-transparent"
-            />
-            {/* Laid out as a flex row rather than an absolutely positioned
-                marker: Reveal applies a transform, which makes it a
-                containing block, so an `absolute` marker inside it would
-                anchor to the wrapper instead of the list item. */}
-            {STEPS.map((step, i) => (
-              <li key={step.n} className="pb-12 last:pb-0">
-                <Reveal delayMs={i * 90} className="flex gap-6">
-                  <span
-                    aria-hidden="true"
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-card font-mono text-[13px] font-medium text-amber"
-                  >
-                    {step.n}
-                  </span>
-                  <div>
-                    <h3 className="font-display text-xl font-bold tracking-tight text-cream">{step.title}</h3>
-                    <p className="mt-2.5 max-w-lg text-[15px] leading-relaxed text-mist">{step.body}</p>
-                  </div>
-                </Reveal>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ----------------------------------------------------- Capabilities */}
+      {/* =================================== 2. Stack strip (logo wall) == */}
       <section className="border-y border-line bg-navy">
-        <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-          <Reveal>
-            <h2 className="max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-[38px]">
-              What it actually does on your site
-            </h2>
-          </Reveal>
-
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {CAPABILITIES.map((cap, i) => (
-              <Reveal key={cap.title} delayMs={i * 70} className="h-full">
-                <div className="card group h-full p-6 transition duration-200 hover:border-line-bright hover:bg-well/60">
-                  <span
-                    aria-hidden="true"
-                    className="grid h-10 w-10 place-items-center rounded-xl border border-amber/25 bg-amber/10 text-amber transition group-hover:bg-amber/15"
-                  >
-                    <cap.icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-cream">{cap.title}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-mist">{cap.body}</p>
-                </div>
-              </Reveal>
+        <div className="mx-auto flex max-w-[78rem] flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:gap-12">
+          <p className="shrink-0 text-[13px] text-dusk">Built with</p>
+          <Reveal className="flex flex-wrap items-center gap-x-10 gap-y-6">
+            {STACK.map((tech) => (
+              // Real brand marks rather than styled text wordmarks, served as
+              // single-colour SVG so they sit correctly on the dark ground.
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={tech.slug}
+                src={`https://cdn.simpleicons.org/${tech.slug}/6b7499`}
+                alt={tech.name}
+                width={24}
+                height={24}
+                loading="lazy"
+                className="h-6 w-auto opacity-80 transition hover:opacity-100"
+              />
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* -------------------------------------------------------- Use cases */}
-      <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+      {/* ================== 3. The install (full-bleed centred artifact) == */}
+      <section className="mx-auto w-full max-w-[52rem] px-5 py-24 text-center sm:px-8">
         <Reveal>
-          <p className="eyebrow">Who it is for</p>
-          <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-[38px]">
-            Built for businesses that answer the same five questions all day
+          <h2 className="font-display text-3xl font-bold tracking-tight text-cream sm:text-[2.5rem]">
+            This is the entire integration.
+          </h2>
+          <p className="mx-auto mt-4 max-w-[34rem] text-[15px] leading-relaxed text-mist">
+            No SDK, no npm install, no framework opinion. Paste it before the closing body tag and
+            the widget is live on the site you already have.
+          </p>
+        </Reveal>
+
+        <Reveal delay={0.1} className="mt-10">
+          <div className="card overflow-hidden text-left">
+            <div className="flex items-center gap-2 border-b border-line bg-well/50 px-4 py-2.5">
+              <span className="font-mono text-[11px] text-dusk">index.html</span>
+              <CopyButton value={EMBED_SNIPPET} className="ml-auto" />
+            </div>
+            <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed sm:text-[13.5px]">
+              <code>
+                <span className="text-dusk">&lt;</span>
+                <span className="text-amber">script</span>{" "}
+                <span className="text-emerald">src</span>
+                <span className="text-dusk">=</span>
+                <span className="text-cream">&quot;https://frontdesk.ai/widget.js&quot;</span>
+                {"\n        "}
+                <span className="text-emerald">data-agent-id</span>
+                <span className="text-dusk">=</span>
+                <span className="text-cream">&quot;YOUR_AGENT_ID&quot;</span>
+                <span className="text-dusk">&gt;&lt;/</span>
+                <span className="text-amber">script</span>
+                <span className="text-dusk">&gt;</span>
+              </code>
+            </pre>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ======================= 4. How it works (staircase progression) == */}
+      <section id="how-it-works" className="scroll-mt-16 border-y border-line bg-navy">
+        <div className="mx-auto max-w-[78rem] px-5 py-28 sm:px-8">
+          <Reveal className="max-w-2xl">
+            <p className="eyebrow">How it works</p>
+            <h2 className="mt-3 font-display text-3xl leading-tight font-bold tracking-tight text-cream sm:text-[2.5rem]">
+              Three steps, and none of them is writing a chatbot script.
+            </h2>
+          </Reveal>
+
+          {/* Each step sits further right than the last, so the section reads
+              as a path rather than three interchangeable columns. */}
+          <Stagger className="mt-16 flex flex-col gap-14">
+            {STEPS.map((step, i) => (
+              <StaggerItem key={step.n}>
+                <div
+                  style={{ ["--indent" as string]: `${i * 7}rem` }}
+                  className="max-w-2xl lg:pl-[var(--indent)]"
+                >
+                  <div className="flex items-baseline gap-5">
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-[13px] font-medium tabular-nums text-amber"
+                    >
+                      {step.n}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-xl font-bold tracking-tight text-cream sm:text-2xl">
+                        {step.title}
+                      </h3>
+                      <p className="mt-3 text-[15px] leading-relaxed text-mist">{step.body}</p>
+                    </div>
+                  </div>
+                </div>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        </div>
+      </section>
+
+      {/* ============================= 5. What it does (asymmetric bento) = */}
+      <section className="mx-auto w-full max-w-[78rem] px-5 py-28 sm:px-8">
+        <Reveal>
+          <h2 className="max-w-2xl font-display text-3xl leading-tight font-bold tracking-tight text-cream sm:text-[2.5rem]">
+            What it actually does on your site
           </h2>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {USE_CASES.map((uc, i) => (
-            <Reveal key={uc.name} delayMs={i * 80} className="h-full">
-              <div className="card flex h-full flex-col p-6">
+        <Stagger className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
+          {/* Large cell, carrying the one photograph in this section. */}
+          <StaggerItem className="md:col-span-2 md:row-span-2">
+            <article className="card relative flex h-full flex-col overflow-hidden">
+              {/* A brand-tinted wash gives this cell visual weight without
+                  pretending a stock photograph is a picture of the product. */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-amber/[0.14] to-transparent"
+              />
+              <div className="relative flex flex-1 flex-col justify-end p-7">
                 <span
                   aria-hidden="true"
-                  className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-well text-amber"
+                  className="grid h-11 w-11 place-items-center rounded-xl border border-amber/25 bg-amber/10 text-amber"
                 >
-                  <uc.icon className="h-5 w-5" />
+                  <ChatCircleDots weight="duotone" className="h-6 w-6" />
                 </span>
-                <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-cream">{uc.name}</h3>
-                <p className="mt-2 flex-1 text-[15px] leading-relaxed text-mist">{uc.detail}</p>
-                <p className="mt-5 border-t border-line pt-4 font-mono text-[12.5px] text-dusk">{uc.line}</p>
+                <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-cream">
+                  Answers from your documents
+                </h3>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-mist">
+                  Pricing, hours, policies, which insurance you take. Drawn from the files you
+                  uploaded, never invented.
+                </p>
               </div>
-            </Reveal>
-          ))}
-        </div>
+            </article>
+          </StaggerItem>
+
+          {/* Tinted cell: the outcome the product is actually sold on. */}
+          <StaggerItem className="md:col-span-2">
+            <article className="card h-full border-amber/25 bg-amber/[0.07] p-6">
+              <span
+                aria-hidden="true"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-amber/30 bg-amber/15 text-amber"
+              >
+                <UserFocus weight="duotone" className="h-6 w-6" />
+              </span>
+              <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-cream">
+                Captures the lead
+              </h3>
+              <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-mist">
+                When a visitor wants to book, it collects a name, an email and what they are after,
+                then files it in your dashboard.
+              </p>
+            </article>
+          </StaggerItem>
+
+          <StaggerItem>
+            <article className="card h-full p-6">
+              <span
+                aria-hidden="true"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-well text-mist"
+              >
+                <Question weight="duotone" className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 font-display text-base font-bold tracking-tight text-cream">
+                Holds the thread
+              </h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-mist">
+                Follow-up questions keep their context.
+              </p>
+            </article>
+          </StaggerItem>
+
+          <StaggerItem>
+            <article className="card h-full p-6">
+              <span
+                aria-hidden="true"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-well text-mist"
+              >
+                <ShieldCheck weight="duotone" className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 font-display text-base font-bold tracking-tight text-cream">
+                Says when it cannot answer
+              </h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-mist">
+                Then offers a hand-off instead of guessing.
+              </p>
+            </article>
+          </StaggerItem>
+        </Stagger>
       </section>
 
-      {/* ---------------------------------------------------- Under the hood */}
-      {/* This replaced an invented pricing table. There is no billing in this
-          project, so quoting a "$29/mo Growth tier" was fiction that the code
-          immediately contradicts. What is here is true, and for the audience
-          that actually reads a portfolio repo, more interesting. */}
-      <section id="under-the-hood" className="scroll-mt-20 border-y border-line bg-navy">
-        <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+      {/* ================================ 6. Who it is for (scroll rail) == */}
+      <section className="border-y border-line bg-navy py-28">
+        <div className="mx-auto max-w-[78rem] px-5 sm:px-8">
           <Reveal>
-            <p className="eyebrow">Under the hood</p>
-            <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-[38px]">
-              The part a reviewer would want to poke at
+            <h2 className="max-w-2xl font-display text-3xl leading-tight font-bold tracking-tight text-cream sm:text-[2.5rem]">
+              Built for businesses that answer the same five questions all day
             </h2>
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-mist">
-              A Next.js dashboard and embeddable widget in front of a FastAPI service that owns
-              retrieval, generation, and every authorization decision.
-            </p>
           </Reveal>
+        </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
-            {INTERNALS.map((item, i) => (
-              <div key={item.title} className="bg-card p-7">
-                <Reveal delayMs={i * 60}>
-                  <span className="font-mono text-[11px] text-dusk">{String(i + 1).padStart(2, "0")}</span>
-                  <h3 className="mt-2 font-display text-lg font-bold tracking-tight text-cream">{item.title}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-mist">{item.body}</p>
-                </Reveal>
-              </div>
+        {/* Full-bleed rail so the cards run past the container edge and read
+            as a set you scroll, not a row that happens to be three wide. */}
+        <Reveal className="mt-14">
+          <div className="rail flex gap-5 overflow-x-auto px-5 pb-4 sm:px-8 lg:px-[max(2rem,calc((100vw-78rem)/2))]">
+            {USE_CASES.map((uc) => (
+              <article
+                key={uc.name}
+                className="card flex w-[17rem] shrink-0 flex-col p-6 sm:w-[21rem]"
+              >
+                {/* The question a real visitor types is more useful here than
+                    a stock photograph of a room. */}
+                <p className="font-mono text-[13px] leading-relaxed text-amber-soft">
+                  &ldquo;{uc.asked}&rdquo;
+                </p>
+                <h3 className="mt-6 font-display text-lg font-bold tracking-tight text-cream">
+                  {uc.name}
+                </h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-mist">{uc.detail}</p>
+              </article>
             ))}
           </div>
-
-          <Reveal delayMs={120}>
-            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-line bg-card px-5 py-4">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-dusk">Stack</span>
-              {STACK.map((tech) => (
-                <span key={tech} className="badge border border-line bg-well text-mist">
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </Reveal>
-        </div>
+        </Reveal>
       </section>
 
-      {/* --------------------------------------------------------- Final CTA */}
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden="true"
-          className="glow-amber pointer-events-none absolute inset-x-0 bottom-0 h-96 rotate-180"
-        />
-        <div className="relative mx-auto max-w-3xl px-5 py-28 text-center sm:px-8">
-          <Reveal className="flex flex-col items-center">
-            <h2 className="font-display text-4xl font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-5xl">
+      {/* ========================= 7. Under the hood (editorial list) ===== */}
+      <section
+        id="under-the-hood"
+        className="mx-auto w-full max-w-[78rem] scroll-mt-16 px-5 py-28 sm:px-8"
+      >
+        <Reveal className="max-w-2xl">
+          <p className="eyebrow">Under the hood</p>
+          <h2 className="mt-3 font-display text-3xl leading-tight font-bold tracking-tight text-cream sm:text-[2.5rem]">
+            The part a reviewer would want to poke at
+          </h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-mist">
+            A Next.js dashboard and embeddable widget in front of a FastAPI service that owns
+            retrieval, generation, and every authorization decision.
+          </p>
+        </Reveal>
+
+        {/* Spacing and one hairline per row, not four boxes. Elevation would
+            imply these are separate things you can act on. */}
+        <Stagger className="mt-14 divide-y divide-line border-t border-line">
+          {INTERNALS.map((item, i) => (
+            <StaggerItem key={item.title}>
+              <div className="grid grid-cols-1 gap-3 py-8 md:grid-cols-[3rem_18rem_1fr] md:gap-8">
+                <span aria-hidden="true" className="font-mono text-[13px] tabular-nums text-dusk">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-display text-lg font-bold tracking-tight text-cream">
+                  {item.title}
+                </h3>
+                <p className="max-w-2xl text-[15px] leading-relaxed text-mist">{item.body}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </section>
+
+      {/* ================================== 8. Closing (centred manifesto) = */}
+      <section className="border-t border-line bg-navy">
+        <div className="mx-auto max-w-[44rem] px-5 py-32 text-center sm:px-8">
+          <Reveal>
+            <h2 className="font-display text-4xl leading-[1.05] font-extrabold tracking-[-0.035em] text-cream sm:text-[3.5rem]">
               Stop answering the same five questions.
             </h2>
-            <p className="mt-5 max-w-md text-[16px] leading-relaxed text-mist">
-              Upload one document, get an agent, paste one line. You can have it running before your
-              next customer emails.
+            <p className="mx-auto mt-6 max-w-md text-[16px] leading-relaxed text-mist">
+              Upload one document, get an agent, paste one line. It can be running before your next
+              customer emails.
             </p>
-            <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <Link href="/signup" className="btn btn-primary px-7 py-3.5 text-[15px]">
-                Get started free
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <Link href="/demo" className="btn btn-ghost px-7 py-3.5 text-[15px]">
-                Try the live demo
+            <div className="mt-10 flex justify-center">
+              <Link href="/signup" className="btn btn-primary px-8 py-3.5 text-[15px]">
+                {CTA_SIGNUP}
+                <ArrowRight weight="bold" className="h-4 w-4" />
               </Link>
             </div>
           </Reveal>
@@ -419,9 +438,9 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row sm:px-8">
+        <div className="mx-auto flex max-w-[78rem] flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row sm:px-8">
           <BrandLink />
-          <p className="font-mono text-[11px] text-dusk">frontdesk.ai — a portfolio project</p>
+          <p className="font-mono text-[11px] text-dusk">frontdesk.ai, a portfolio project</p>
         </div>
       </footer>
     </div>

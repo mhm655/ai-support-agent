@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import { MotionProvider } from "@/components/marketing/Motion";
 
 // Bricolage Grotesque for brand/marketing moments (wordmark, headlines) —
 // chosen over the far more common Space Grotesk specifically because that
@@ -24,7 +25,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "frontdesk.ai — an AI front desk that never clocks out",
+    default: "frontdesk.ai, an AI front desk that never clocks out",
     template: "%s · frontdesk.ai",
   },
   description:
@@ -45,7 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}
     >
       <body className="flex min-h-screen flex-col bg-void font-body text-cream">
-        <ToastProvider>{children}</ToastProvider>
+        {/* reducedMotion="user" makes every Motion animation in the tree
+            respect the OS setting, so no component has to branch on it. */}
+        <MotionProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </MotionProvider>
       </body>
     </html>
   );
