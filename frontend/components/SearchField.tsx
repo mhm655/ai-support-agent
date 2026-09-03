@@ -34,7 +34,7 @@ export default function SearchField({
         {label}
       </label>
       <div className="relative">
-        <span aria-hidden="true" className="absolute inset-y-0 left-3.5 flex items-center text-dusk">
+        <span aria-hidden="true" className="absolute inset-y-0 left-3.5 flex items-center text-ink-faint">
           <SearchIcon className="h-4 w-4" />
         </span>
         <input
@@ -50,7 +50,7 @@ export default function SearchField({
             type="button"
             onClick={() => onChange("")}
             aria-label="Clear search"
-            className="focus-ring absolute inset-y-1 right-1 flex w-9 items-center justify-center rounded-full text-dusk transition hover:bg-cream/5 hover:text-cream"
+            className="focus-ring absolute inset-y-1 right-1 flex w-9 items-center justify-center rounded-full text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink"
           >
             <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
               <path d="M5.5 5.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -58,7 +58,7 @@ export default function SearchField({
           </button>
         )}
       </div>
-      <p aria-live="polite" className="mt-2 h-4 font-mono text-[11px] text-dusk">
+      <p aria-live="polite" className="mt-2 h-4 font-mono text-[11px] text-ink-faint">
         {filtering ? `${resultCount} of ${totalCount} ${noun}${totalCount === 1 ? "" : "s"}` : ""}
       </p>
     </div>

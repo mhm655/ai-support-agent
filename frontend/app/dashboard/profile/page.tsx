@@ -96,58 +96,58 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div className="mt-8 flex flex-col gap-4">
-          {/* Identity card. The amber ring makes the avatar read as the
+          {/* Identity panel. The accent ring makes the avatar read as the
               account's anchor rather than a decorative circle. */}
-          <div className="card flex items-center gap-5 p-6">
+          <div className="panel flex items-center gap-5 p-6">
             <span
               aria-hidden="true"
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber/25 bg-amber/10 text-amber"
+              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-volt/25 bg-volt/10 text-volt"
             >
               <UserIcon className="h-6 w-6" />
             </span>
             <div className="min-w-0">
-              <p className="truncate font-display text-lg font-bold tracking-tight text-cream">
+              <p className="truncate font-display text-lg font-bold tracking-tight text-ink">
                 {business?.name}
               </p>
-              <p className="truncate text-sm text-mist">{email}</p>
+              <p className="truncate text-sm text-ink-muted">{email}</p>
             </div>
           </div>
 
           {/* At-a-glance stats */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="card flex items-center gap-4 p-5">
+            <div className="panel flex items-center gap-4 p-5">
               <span
                 aria-hidden="true"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-well text-amber"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
               >
                 <ChatIcon className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-display text-2xl font-bold tabular-nums text-cream">{agentCount}</p>
-                <p className="text-sm text-dusk">
+                <p className="font-display text-2xl font-bold tabular-nums text-ink">{agentCount}</p>
+                <p className="text-sm text-ink-faint">
                   agent{agentCount === 1 ? "" : "s"} configured
                 </p>
               </div>
             </div>
 
-            <div className="card flex items-center gap-4 p-5">
+            <div className="panel flex items-center gap-4 p-5">
               <span
                 aria-hidden="true"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-well text-amber"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
               >
                 <ClockIcon className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-display text-lg font-bold text-cream">
+                <p className="font-display text-lg font-bold text-ink">
                   {business ? new Date(business.created_at).toLocaleDateString() : "Unknown"}
                 </p>
-                <p className="text-sm text-dusk">member since</p>
+                <p className="text-sm text-ink-faint">member since</p>
               </div>
             </div>
           </div>
 
-          <div className="card p-6">
-            <h2 className="font-display text-base font-bold tracking-tight text-cream">Business details</h2>
+          <div className="panel p-6">
+            <h2 className="font-display text-base font-bold tracking-tight text-ink">Business details</h2>
 
             <form onSubmit={handleSave} className="mt-5 flex flex-col gap-5" noValidate>
               <div className="flex flex-col gap-1.5">
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                   }}
                   className="field max-w-sm"
                 />
-                <span className="text-xs text-dusk">
+                <span className="text-xs text-ink-faint">
                   Shown to you here; agents introduce themselves with their own name.
                 </span>
               </div>
@@ -179,7 +179,7 @@ export default function ProfilePage() {
                   value={email ?? ""}
                   className="field max-w-sm"
                 />
-                <span className="text-xs text-dusk">
+                <span className="text-xs text-ink-faint">
                   Managed through your Supabase account, not editable here.
                 </span>
               </div>
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                   {saving ? "Saving…" : "Save changes"}
                 </button>
                 {saved && (
-                  <span className="flex items-center gap-1.5 text-sm text-emerald">
+                  <span className="flex items-center gap-1.5 text-sm text-good">
                     <CheckIcon className="h-4 w-4" />
                     Saved
                   </span>

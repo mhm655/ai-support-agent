@@ -28,7 +28,7 @@ export default function AuthLayout({
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
       {/* Brand rail */}
-      <aside className="relative hidden overflow-hidden border-r border-line bg-navy lg:flex lg:flex-col lg:justify-between lg:p-12">
+      <aside className="relative hidden overflow-hidden border-r border-edge bg-paper-raised lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="relative">
           <BrandLink />
         </div>
@@ -39,15 +39,15 @@ export default function AuthLayout({
             <br />
             <span>at the desk.</span>
             <br />
-            <span className="text-amber">Even at 2am.</span>
+            <span className="text-volt">Even at 2am.</span>
           </h2>
 
           <ul className="mt-9 flex flex-col gap-4">
             {PROOF.map((item) => (
-              <li key={item} className="flex items-start gap-3 text-[15px] leading-relaxed text-mist">
+              <li key={item} className="flex items-start gap-3 text-[15px] leading-relaxed text-ink-muted">
                 <span
                   aria-hidden="true"
-                  className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-amber/15 text-amber"
+                  className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-volt/15 text-volt"
                 >
                   <CheckIcon className="h-3.5 w-3.5" />
                 </span>
@@ -57,7 +57,7 @@ export default function AuthLayout({
           </ul>
         </div>
 
-        <p className="relative font-mono text-[11px] text-dusk">frontdesk.ai, a portfolio project</p>
+        <p className="relative font-mono text-[11px] text-ink-faint">frontdesk.ai, a portfolio project</p>
       </aside>
 
       {/* Form panel */}
@@ -67,16 +67,16 @@ export default function AuthLayout({
             <BrandLink />
           </div>
 
-          <div className="card p-7 sm:p-8">
-            <h1 className="font-display text-[22px] font-bold tracking-tight text-cream">{title}</h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-mist">{subtitle}</p>
+          <div className="panel p-7 sm:p-8">
+            <h1 className="font-display text-[22px] font-bold tracking-tight text-ink">{title}</h1>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{subtitle}</p>
             {children}
           </div>
 
-          <p className="mt-6 text-center text-sm text-dusk">{footer}</p>
+          <p className="mt-6 text-center text-sm text-ink-faint">{footer}</p>
 
           <p className="mt-8 text-center lg:hidden">
-            <Link href="/" className="focus-ring rounded text-xs text-dusk transition hover:text-mist">
+            <Link href="/" className="focus-ring rounded text-xs text-ink-faint transition hover:text-ink-muted">
               ← Back to frontdesk.ai
             </Link>
           </p>

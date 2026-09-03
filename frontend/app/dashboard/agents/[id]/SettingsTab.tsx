@@ -85,7 +85,7 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
     <div className="flex flex-col gap-4">
       <InstallCard agentId={agentId} />
 
-      <form onSubmit={handleSave} className="card flex flex-col gap-7 p-6">
+      <form onSubmit={handleSave} className="panel flex flex-col gap-7 p-6">
         <div className="flex flex-col gap-2">
           <label htmlFor={personalityId} className="label">
             Personality &amp; tone
@@ -141,12 +141,12 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
             {saving ? "Saving…" : "Save changes"}
           </button>
           {saved && (
-            <span className="flex items-center gap-1.5 text-sm text-emerald">
+            <span className="flex items-center gap-1.5 text-sm text-good">
               <CheckIcon className="h-4 w-4" />
               Saved
             </span>
           )}
-          {dirty && !saving && <span className="text-sm text-dusk">Unsaved changes</span>}
+          {dirty && !saving && <span className="text-sm text-ink-faint">Unsaved changes</span>}
         </div>
       </form>
     </div>
@@ -177,18 +177,18 @@ function InstallCard({ agentId }: { agentId: string }) {
   const snippet = `<script src="${origin}/widget.js"\n        data-agent-id="${agentId}"\n        data-api-url="${apiUrl}"></script>`;
 
   return (
-    <div className="card overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b border-line bg-well/50 px-5 py-3">
-        <CodeIcon className="h-4 w-4 text-amber" />
-        <span className="text-[13px] font-medium text-cream">Install on your site</span>
+    <div className="panel overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 border-b border-edge bg-paper-sunk/50 px-5 py-3">
+        <CodeIcon className="h-4 w-4 text-volt" />
+        <span className="text-[13px] font-medium text-ink">Install on your site</span>
         <CopyButton value={snippet} label="Copy snippet" className="ml-auto" />
       </div>
       <div className="p-5">
         <p className="hint mb-3">
-          Paste this just before the closing <code className="font-mono text-amber-soft">&lt;/body&gt;</code>{" "}
+          Paste this just before the closing <code className="font-mono text-volt">&lt;/body&gt;</code>{" "}
           tag on any page you want the agent to appear on.
         </p>
-        <pre className="overflow-x-auto rounded-xl border border-line bg-void p-4 font-mono text-[12px] leading-relaxed text-mist">
+        <pre className="overflow-x-auto rounded-xl border border-edge bg-paper p-4 font-mono text-[12px] leading-relaxed text-ink-muted">
           <code>{snippet}</code>
         </pre>
       </div>
@@ -199,7 +199,7 @@ function InstallCard({ agentId }: { agentId: string }) {
 function CharCount({ value, max }: { value: number; max: number }) {
   const near = value > max * 0.9;
   return (
-    <p className={`text-right font-mono text-[11px] ${near ? "text-amber" : "text-dusk"}`}>
+    <p className={`text-right font-mono text-[11px] ${near ? "text-volt" : "text-ink-faint"}`}>
       {value}/{max}
     </p>
   );

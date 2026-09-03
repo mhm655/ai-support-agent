@@ -86,11 +86,11 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
           when nothing has been uploaded, but reads as broken. Say so before
           the user spends five minutes testing an empty knowledge base. */}
       {readyDocs === 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber/30 bg-amber/[0.07] p-4">
-          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
-          <p className="text-[13px] leading-relaxed text-cream">
+        <div className="flex items-start gap-3 rounded-2xl border border-volt/30 bg-volt/[0.07] p-4">
+          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
+          <p className="text-[13px] leading-relaxed text-ink">
             <span className="font-medium">No documents are ready yet.</span>{" "}
-            <span className="text-mist">
+            <span className="text-ink-muted">
               This agent has nothing to answer from, so it will say it doesn&apos;t know. Upload one
               in the Documents tab first.
             </span>
@@ -98,11 +98,11 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
         </div>
       )}
 
-      <div className="card overflow-hidden">
-        <div className="flex items-center gap-2.5 border-b border-line bg-well/50 px-4 py-3">
+      <div className="panel overflow-hidden">
+        <div className="flex items-center gap-2.5 border-b border-edge bg-paper-sunk/50 px-4 py-3">
           <StatusDot />
-          <span className="text-[13px] font-medium text-cream">Preview</span>
-          <span className="ml-auto font-mono text-[11px] text-dusk">same endpoint as the live widget</span>
+          <span className="text-[13px] font-medium text-ink">Preview</span>
+          <span className="ml-auto font-mono text-[11px] text-ink-faint">same endpoint as the live widget</span>
         </div>
 
         <div
@@ -113,7 +113,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
         >
           {messages.length === 0 ? (
             <div className="m-auto max-w-xs text-center">
-              <p className="text-sm leading-relaxed text-mist">
+              <p className="text-sm leading-relaxed text-ink-muted">
                 Ask something a customer would ask. Answers come from the documents you uploaded.
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -123,7 +123,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
                     type="button"
                     onClick={() => send(s)}
                     style={{ animationDelay: `${i * 60}ms` }}
-                    className="focus-ring enter rounded-full border border-line bg-well px-3 py-1.5 text-[12.5px] text-mist transition hover:-translate-y-px hover:border-amber/40 hover:text-cream"
+                    className="focus-ring enter rounded-full border border-edge bg-paper-sunk px-3 py-1.5 text-[12.5px] text-ink-muted transition hover:-translate-y-px hover:border-volt/40 hover:text-ink"
                   >
                     {s}
                   </button>
@@ -141,8 +141,8 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
                   <span
                     className={`inline-block max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
                       m.role === "user"
-                        ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
-                        : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
+                        ? "rounded-2xl rounded-br-md bg-volt font-medium text-white"
+                        : "rounded-2xl rounded-bl-md border border-edge bg-paper-sunk text-ink"
                     }`}
                   >
                     {pending ? <TypingDots /> : m.text}
@@ -158,7 +158,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
             e.preventDefault();
             send(input.trim());
           }}
-          className="flex gap-2 border-t border-line bg-well/30 p-3"
+          className="flex gap-2 border-t border-edge bg-paper-sunk/30 p-3"
         >
           <label htmlFor="test-chat-input" className="sr-only">
             Ask something a customer might ask
@@ -190,7 +190,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
             conversationIdRef.current = null;
             inputRef.current?.focus();
           }}
-          className="focus-ring self-start rounded text-[13px] text-dusk transition hover:text-cream"
+          className="focus-ring self-start rounded text-[13px] text-ink-faint transition hover:text-ink"
         >
           Start a new conversation
         </button>

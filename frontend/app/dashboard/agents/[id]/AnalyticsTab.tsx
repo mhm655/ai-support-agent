@@ -43,25 +43,25 @@ export default function AnalyticsTab({ agentId }: { agentId: string }) {
         <div
           key={card.label}
           style={{ animationDelay: `${i * 60}ms` }}
-          // The highlight is carried by the border and icon tile only. An
-          // amber tint on the card background replaces bg-card rather than
-          // layering over it, which makes the "important" card the darkest
-          // one on the row — the opposite of the intent.
-          className={`card enter p-5 ${card.highlight ? "border-amber/40" : ""}`}
+          // The highlight is carried by the border and icon tile only. A
+          // tinted panel background replaces bg-paper-raised rather than layering
+          // over it, which would make the "important" card the darkest one
+          // on the row: the opposite of the intent.
+          className={`panel enter p-5 ${card.highlight ? "border-volt/40" : ""}`}
         >
           <span
             aria-hidden="true"
             className={`grid h-9 w-9 place-items-center rounded-xl border ${
-              card.highlight ? "border-amber/30 bg-amber/15 text-amber" : "border-line bg-well text-mist"
+              card.highlight ? "border-volt/30 bg-volt/15 text-volt" : "border-edge bg-paper-sunk text-ink-muted"
             }`}
           >
             <card.icon className="h-4.5 w-4.5" />
           </span>
           <AnimatedNumber
             value={card.value}
-            className="mt-4 block font-display text-[32px] leading-none font-bold tabular-nums text-cream"
+            className="mt-4 block font-display text-[32px] leading-none font-bold tabular-nums text-ink"
           />
-          <p className="mt-2 text-[13px] text-dusk">{card.label}</p>
+          <p className="mt-2 text-[13px] text-ink-faint">{card.label}</p>
         </div>
       ))}
     </div>

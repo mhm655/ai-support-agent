@@ -71,7 +71,7 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
       )}
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line-bright bg-card/40 px-6 py-10 text-center text-sm text-dusk">
+        <p className="rounded-2xl border border-dashed border-edge bg-paper-raised/40 px-6 py-10 text-center text-sm text-ink-faint">
           No leads match &ldquo;{query}&rdquo;.
         </p>
       ) : (
@@ -81,26 +81,26 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
             return (
               <li
                 key={lead.id}
-                className="card enter flex items-start gap-4 p-4"
+                className="panel enter flex items-start gap-4 p-4"
                 style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
               >
                 <span
                   aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber/25 bg-amber/10 font-display text-sm font-bold text-amber"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-volt/25 bg-volt/10 font-display text-sm font-bold text-volt"
                 >
                   {lead.name?.trim().charAt(0).toUpperCase() || "?"}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-cream">{lead.name || "(no name given)"}</p>
+                  <p className="truncate font-medium text-ink">{lead.name || "(no name given)"}</p>
                   {contact ? (
-                    <p className="truncate font-mono text-[12px] text-mist">
+                    <p className="truncate font-mono text-[12px] text-ink-muted">
                       {/* A captured email is the point of the product — make
                           it one click to act on rather than something to
                           select and copy by hand. */}
                       {lead.email && (
                         <a
                           href={`mailto:${lead.email}`}
-                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-amber"
+                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-volt"
                         >
                           {lead.email}
                         </a>
@@ -109,24 +109,24 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
                       {lead.phone && (
                         <a
                           href={`tel:${lead.phone}`}
-                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-amber"
+                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-volt"
                         >
                           {lead.phone}
                         </a>
                       )}
                     </p>
                   ) : (
-                    <p className="font-mono text-[12px] text-dusk">No contact info given</p>
+                    <p className="font-mono text-[12px] text-ink-faint">No contact info given</p>
                   )}
                   {lead.interest && (
-                    <p className="mt-2 rounded-lg border border-line bg-well px-3 py-2 text-[13px] leading-relaxed text-mist">
+                    <p className="mt-2 rounded-lg border border-edge bg-paper-sunk px-3 py-2 text-[13px] leading-relaxed text-ink-muted">
                       {lead.interest}
                     </p>
                   )}
                 </div>
                 <time
                   dateTime={lead.created_at}
-                  className="shrink-0 font-mono text-[11px] whitespace-nowrap text-dusk"
+                  className="shrink-0 font-mono text-[11px] whitespace-nowrap text-ink-faint"
                 >
                   {new Date(lead.created_at).toLocaleDateString()}
                 </time>

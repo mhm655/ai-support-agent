@@ -7,7 +7,7 @@ export default function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`skeleton rounded-2xl border border-line bg-card/60 ${className}`}
+      className={`skeleton rounded-2xl border border-edge bg-paper-raised/60 ${className}`}
     />
   );
 }

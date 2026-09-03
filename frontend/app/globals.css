@@ -2,62 +2,105 @@
 
 /*
  * ---------------------------------------------------------------------------
- * Design tokens
+ * Design tokens: material and depth
  * ---------------------------------------------------------------------------
- * One identity across the whole product: landing page, auth, dashboard and
- * the embedded widget all draw from this palette. The app is dark by
- * design — cream is the ink, navy is the paper, amber is the only accent.
+ * This system is built on light, weight and texture rather than hairlines.
+ * Surfaces sit above one another and cast tinted shadows, a grain overlay
+ * gives the whole page a physical tooth, and translucent panels layer over
+ * a saturated colour field.
  *
- * Surfaces are a ladder, not a set of unrelated colors. Anything that sits
- * "on top" of something else moves one rung up:
- *   void (page ground) -> navy (section) -> card (panel) -> well (input)
- * Never skip a rung; that's what makes depth read as deliberate.
+ * Two grounds, one product:
+ *   paper  - the everyday surface for reading and working
+ *   field  - a deep indigo used full-bleed, with glass panels floating on it
+ *
+ * Shadows are tinted toward the ground's hue, never pure black, because a
+ * neutral-black shadow on a warm surface reads as dirt rather than depth.
  */
 :root {
-  /* Surfaces, darkest to lightest */
-  --color-void: #0a0c1a;
-  --color-navy: #101227;
-  --color-card: #171a33;
-  --color-well: #1d2140;
+  /* Paper, receding to advancing */
+  --color-paper-sunk: #e4e1d9;
+  --color-paper: #eceae4;
+  --color-paper-raised: #f5f3ef;
+  --color-paper-high: #fbfaf8;
 
-  /* Hairlines. Solid rather than white/alpha so they stay predictable
-     wherever they land on the surface ladder. */
-  --color-line: #262b4c;
-  --color-line-bright: #363c68;
+  /* Ink */
+  --color-ink: #17160f;
+  --color-ink-muted: #57544a;
+  --color-ink-faint: #8d8a7e;
 
-  /* Text, brightest to dimmest */
-  --color-cream: #f4f2ec;
-  --color-mist: #a2aac6;
-  --color-dusk: #6b7499;
+  /* Edges. Present but secondary: depth comes from shadow, not outline. */
+  --color-edge: #ded9cf;
+  --color-edge-strong: #c6c0b2;
 
-  /* Accents */
-  --color-amber: #e8a33d;
-  --color-amber-soft: #f7ce8a;
-  --color-amber-deep: #b87a1f;
-  --color-emerald: #34d399;
-  --color-rose: #f2705f;
+  /* Accent */
+  --color-volt: #2f43f5;
+  --color-volt-deep: #1e2ec0;
+  --color-volt-wash: #e7e9ff;
 
-  /* Radii and elevation */
-  --radius-card: 16px;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 48px -20px rgb(0 0 0 / 0.65);
+  /* The colour field, and glass that floats on it */
+  --color-field: #1a1f6b;
+  --color-field-deep: #10133f;
+  --color-field-lit: #3040c8;
+
+  /* Dark material, for inverted panels */
+  --color-slab: #1b1a15;
+  --color-slab-raised: #262419;
+  --color-bone: #f2f0ea;
+  --color-bone-muted: #b3afa2;
+  --color-bone-faint: #7d7a6f;
+  --color-edge-dark: #38352a;
+
+  /* Status */
+  --color-good: #128a4d;
+  --color-bad: #c33127;
+
+  /*
+   * Elevation. Each step is a tight contact shadow plus a wide soft one,
+   * which is what makes an object look like it is resting on something
+   * rather than floating in front of it.
+   */
+  --shadow-1:
+    0 1px 2px rgb(23 22 15 / 0.05),
+    0 2px 6px -2px rgb(23 22 15 / 0.08);
+  --shadow-2:
+    0 1px 2px rgb(23 22 15 / 0.06),
+    0 8px 20px -6px rgb(23 22 15 / 0.14);
+  --shadow-3:
+    0 2px 4px rgb(23 22 15 / 0.07),
+    0 18px 40px -12px rgb(23 22 15 / 0.2);
+  --shadow-4:
+    0 3px 6px rgb(23 22 15 / 0.08),
+    0 36px 80px -24px rgb(23 22 15 / 0.3);
+
+  /* One radius scale: panels 14, controls 10, buttons pill. */
+  --radius-panel: 14px;
+  --radius-control: 10px;
 }
 
 @theme inline {
-  --color-void: var(--color-void);
-  --color-navy: var(--color-navy);
-  --color-card: var(--color-card);
-  --color-well: var(--color-well);
-  --color-line: var(--color-line);
-  --color-line-bright: var(--color-line-bright);
-  --color-cream: var(--color-cream);
-  --color-mist: var(--color-mist);
-  --color-dusk: var(--color-dusk);
-  --color-amber: var(--color-amber);
-  --color-amber-soft: var(--color-amber-soft);
-  --color-amber-deep: var(--color-amber-deep);
-  --color-emerald: var(--color-emerald);
-  --color-rose: var(--color-rose);
+  --color-paper-sunk: var(--color-paper-sunk);
+  --color-paper: var(--color-paper);
+  --color-paper-raised: var(--color-paper-raised);
+  --color-paper-high: var(--color-paper-high);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-edge: var(--color-edge);
+  --color-edge-strong: var(--color-edge-strong);
+  --color-volt: var(--color-volt);
+  --color-volt-deep: var(--color-volt-deep);
+  --color-volt-wash: var(--color-volt-wash);
+  --color-field: var(--color-field);
+  --color-field-deep: var(--color-field-deep);
+  --color-field-lit: var(--color-field-lit);
+  --color-slab: var(--color-slab);
+  --color-slab-raised: var(--color-slab-raised);
+  --color-bone: var(--color-bone);
+  --color-bone-muted: var(--color-bone-muted);
+  --color-bone-faint: var(--color-bone-faint);
+  --color-edge-dark: var(--color-edge-dark);
+  --color-good: var(--color-good);
+  --color-bad: var(--color-bad);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -65,134 +108,172 @@
 }
 
 body {
-  background: var(--color-void);
-  color: var(--color-cream);
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
-/* Text selection picks up the accent instead of the browser default blue,
-   which clashes badly against navy. */
 ::selection {
-  background: var(--color-amber);
-  color: var(--color-void);
-}
-
-/* A dark page with a light scrollbar gutter looks broken on Windows, which
-   is where this is developed and demoed. */
-* {
-  scrollbar-color: var(--color-line-bright) transparent;
-  scrollbar-width: thin;
-}
-
-
-/*
- * Motion vocabulary. Kept small on purpose: things enter by rising slightly
- * and fading, panels scale in a touch, and nothing loops except genuine
- * activity indicators. The reduced-motion block at the bottom of this file
- * neutralises every one of these globally.
- */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes dialog-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Sweeps a highlight across loading placeholders so a slow request reads as
-   "working" rather than "stuck". */
-
-@keyframes hero-rise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
+  background: var(--color-volt);
+  color: #fff;
 }
 
 @layer components {
-  /*
-   * Shared primitives. These live here rather than as React components
-   * because they're pure styling with no behaviour — a <button className="btn
-   * btn-primary"> stays a plain button, keeps its own type/disabled/aria
-   * handling, and can still be overridden by a Tailwind utility (these sit
-   * in the components layer, which utilities beat).
-   */
-
   .focus-ring {
-    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber/60 focus-visible:ring-offset-2 focus-visible:ring-offset-void;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-volt focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
 
-  .card {
-    @apply rounded-2xl border border-line bg-card;
-    box-shadow: var(--shadow-card);
+  .display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.033em;
+    line-height: 1;
+  }
+
+  .label-mono {
+    @apply font-mono text-[11px] tracking-[0.16em] uppercase;
   }
 
   /* Buttons ---------------------------------------------------------- */
   .btn {
-    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2.5
-           text-sm font-medium transition duration-150
-           disabled:cursor-not-allowed disabled:opacity-45;
-    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber/60 focus-visible:ring-offset-2 focus-visible:ring-offset-void;
+    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5
+           text-[15px] font-medium transition duration-150
+           disabled:cursor-not-allowed disabled:opacity-40;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-volt focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
-
   .btn-primary {
-    @apply bg-amber text-void;
-    box-shadow: 0 1px 0 var(--color-amber-soft) inset, 0 6px 20px -8px rgb(232 163 61 / 0.7);
+    @apply bg-ink text-paper-high;
+    box-shadow: var(--shadow-2);
   }
   .btn-primary:hover:not(:disabled) {
-    @apply bg-amber-soft;
+    box-shadow: var(--shadow-3);
+    @apply -translate-y-px;
   }
   .btn-primary:active:not(:disabled) {
-    @apply translate-y-px;
+    box-shadow: var(--shadow-1);
+    @apply translate-y-0;
+  }
+
+  .btn-volt {
+    @apply bg-volt text-white;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      var(--shadow-2);
+  }
+  .btn-volt:hover:not(:disabled) {
+    @apply -translate-y-px bg-volt-deep;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      var(--shadow-3);
+  }
+  .btn-volt:active:not(:disabled) {
+    @apply translate-y-0;
+    box-shadow: var(--shadow-1);
   }
 
   .btn-ghost {
-    @apply border border-line-bright bg-transparent text-cream;
+    @apply border border-edge-strong bg-paper-raised text-ink;
+    box-shadow: var(--shadow-1);
   }
   .btn-ghost:hover:not(:disabled) {
-    @apply border-cream/25 bg-cream/5;
+    @apply -translate-y-px bg-paper-high;
+    box-shadow: var(--shadow-2);
+  }
+  .btn-ghost:active:not(:disabled) {
+    @apply translate-y-0;
   }
 
   .btn-danger {
-    @apply text-rose;
+    @apply text-bad;
   }
   .btn-danger:hover:not(:disabled) {
-    @apply bg-rose/10;
+    @apply bg-bad/10;
+  }
+
+  /* Panels ----------------------------------------------------------- */
+  .panel {
+    @apply rounded-[14px] border border-edge bg-paper-raised;
+    box-shadow: var(--shadow-2);
+  }
+  .panel-high {
+    @apply rounded-[14px] border border-edge bg-paper-high;
+    box-shadow: var(--shadow-3);
+  }
+  .panel-dark {
+    @apply rounded-[14px] border border-edge-dark bg-slab;
+    box-shadow: var(--shadow-4);
+  }
+
+  /*
+   * Glass, for panels that float on the colour field. A blur alone looks
+   * like a flat tint: the inner top highlight and the hairline inner border
+   * are what make an edge catch the light.
+   */
+  .glass {
+    @apply rounded-[14px];
+    background: linear-gradient(
+      160deg,
+      rgb(255 255 255 / 0.16),
+      rgb(255 255 255 / 0.06) 40%,
+      rgb(255 255 255 / 0.03)
+    );
+    border: 1px solid rgb(255 255 255 / 0.16);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06),
+      0 24px 60px -24px rgb(6 8 40 / 0.7);
+  }
+  /* Blur is a decoration, not the content. Where the viewer has asked for
+     less transparency, or the browser cannot blur, fall back to a solid. */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass {
+      background: rgb(38 46 130 / 0.92);
+    }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background: rgb(38 46 130 / 0.94);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
   }
 
   /* Form fields ------------------------------------------------------ */
   .label {
-    @apply text-sm font-medium text-cream;
+    @apply text-[13px] font-medium text-ink;
   }
-
   .hint {
-    @apply text-sm leading-relaxed text-dusk;
+    @apply text-[13px] leading-relaxed text-ink-faint;
   }
-
   .field {
-    @apply w-full rounded-xl border border-line bg-well px-3.5 py-2.5 text-sm text-cream
-           transition duration-150 outline-none
-           placeholder:text-dusk
-           hover:border-line-bright
-           focus-visible:border-amber focus-visible:ring-2 focus-visible:ring-amber/25;
+    @apply w-full rounded-[10px] border border-edge-strong bg-paper-high px-3.5 py-2.5
+           text-[15px] text-ink transition duration-150 outline-none
+           placeholder:text-ink-faint
+           hover:border-ink-faint
+           focus-visible:border-volt focus-visible:ring-2 focus-visible:ring-volt/25;
+    box-shadow: inset 0 1px 2px rgb(23 22 15 / 0.06);
   }
   .field:disabled {
-    @apply cursor-not-allowed text-dusk opacity-70;
+    @apply cursor-not-allowed text-ink-faint opacity-70;
   }
-
-  /* Eyebrow: the small uppercase mono label. Deliberately defined once so
-     it's easy to see how many places actually use it — the landing page
-     previously repeated the device four times, which read as templated. */
-  .eyebrow {
-    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-amber;
+  .field-dark {
+    @apply w-full rounded-[10px] border border-edge-dark bg-slab-raised px-3.5 py-2.5
+           text-[15px] text-bone transition duration-150 outline-none
+           placeholder:text-bone-faint
+           hover:border-bone-faint
+           focus-visible:border-volt focus-visible:ring-2 focus-visible:ring-volt/30;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.3);
+  }
+  .field-glass {
+    @apply w-full rounded-[10px] px-3.5 py-2.5 text-[15px] text-white transition
+           duration-150 outline-none placeholder:text-white/50;
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.18);
+  }
+  .field-glass:focus-visible {
+    border-color: rgb(255 255 255 / 0.5);
+    background: rgb(255 255 255 / 0.16);
   }
 
   .badge {
@@ -202,45 +283,34 @@ body {
 
 @layer utilities {
   /*
-   * Hero entrance. Deliberately CSS rather than Motion, and deliberately
-   * without animation-fill-mode.
-   *
-   * With no fill mode the element's resting style is the visible one, so an
-   * animation that never runs (JS disabled, a prerender that does not paint,
-   * a bot capturing the page for a social card) leaves the most important
-   * content on the site on screen rather than invisible. Above the fold,
-   * failing visible matters more than the animation.
-   *
-   * The cascade comes from varying duration, not delay: every element starts
-   * at once and settles in sequence. A delay would leave later elements
-   * visible, then blink to transparent when their animation finally began.
+   * Grain. A fixed, pointer-events-none overlay so the texture never
+   * repaints while the page scrolls, which is what makes noise filters
+   * expensive on mobile. Generated rather than downloaded.
    */
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-in {
-      animation: hero-rise 620ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hero-in-2 {
-      animation: hero-rise 780ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hero-in-3 {
-      animation: hero-rise 940ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hero-in-4 {
-      animation: hero-rise 1100ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  /*
-   * Scroll-reveal states, used by the dashboard's list entries. The two
-   * visual states live here rather than as toggled Tailwind classes so the
-   * reduced-motion rule below can force the visible state unconditionally.
-   * If visibility depended on JS alone, anything that never fires the
-   * observer would leave content permanently at opacity 0.
-   */
+  /* The saturated ground that glass panels float on. */
+  .field-bg {
+    background:
+      radial-gradient(120% 90% at 15% 0%, var(--color-field-lit) 0%, transparent 55%),
+      radial-gradient(100% 80% at 90% 100%, #2a1f7a 0%, transparent 60%),
+      linear-gradient(170deg, var(--color-field) 0%, var(--color-field-deep) 100%);
+  }
+
   .reveal {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform: translateY(18px);
+    transition:
+      opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
       transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   .reveal[data-visible="true"] {
@@ -254,8 +324,28 @@ body {
     }
   }
 
-  /* Applied to list rows as they first appear. The delay is set inline by
-     the caller so a list staggers instead of popping as one block. */
+  /*
+   * Hero entrance. Deliberately without animation-fill-mode: the resting
+   * style is the visible one, so an animation that never runs still leaves
+   * the most important content on the page on screen. The cascade comes
+   * from varying duration rather than delay, because a delay would show
+   * later elements and then blink them to transparent.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-in {
+      animation: hero-rise 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-2 {
+      animation: hero-rise 760ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-3 {
+      animation: hero-rise 920ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-in-4 {
+      animation: hero-rise 1080ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
   .enter {
     animation: rise-in 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
@@ -269,19 +359,10 @@ body {
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgb(244 242 236 / 0.05),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, rgb(23 22 15 / 0.05), transparent);
     animation: shimmer 1.6s infinite;
   }
 
-  /* Horizontal card rail. Scroll-snap rather than a three-column grid: an
-     equal-thirds feature row is the most recognisable generated-landing-page
-     layout there is, and a rail also handles a fourth card without a
-     redesign. */
   .rail {
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -294,20 +375,44 @@ body {
   }
 }
 
-/* Respect the OS setting globally rather than remembering to add
-   motion-reduce: to every animated element. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     /*
-     * `animation: none`, not a 0.01ms duration. Several entrance animations
-     * use animation-fill-mode: backwards, which holds the element at its
-     * "from" state (opacity 0) until the animation actually starts — and an
-     * animation only starts once the document paints a frame. Shortening the
-     * duration doesn't help a pending animation: it stays pending, and the
-     * content stays invisible. Removing the animation outright means the
-     * element simply renders in its normal, visible state.
+     * `animation: none`, not a shortened duration. Entrance animations use
+     * animation-fill-mode: backwards, which holds the element at opacity 0
+     * until the animation starts, and an animation only starts once the
+     * document paints. Shortening the duration leaves a pending animation
+     * pending, and the content stays invisible.
      */
     animation: none !important;
     transition: none !important;

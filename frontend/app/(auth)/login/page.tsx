@@ -78,7 +78,7 @@ export default function LoginPage() {
           No account?{" "}
           <Link
             href="/signup"
-            className="focus-ring rounded font-medium text-cream underline decoration-amber/60 underline-offset-4 transition hover:text-amber"
+            className="focus-ring rounded font-medium text-ink underline decoration-volt/60 underline-offset-4 transition hover:text-volt"
           >
             Sign up
           </Link>

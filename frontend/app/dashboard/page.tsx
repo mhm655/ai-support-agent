@@ -134,7 +134,7 @@ export default function DashboardPage() {
         description="Each agent keeps its own knowledge base and answers as a separate assistant."
       />
 
-      <form onSubmit={handleCreateAgent} className="card mt-8 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+      <form onSubmit={handleCreateAgent} className="panel mt-8 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         <label htmlFor="new-agent-name" className="sr-only">
           New agent name
         </label>
@@ -172,12 +172,12 @@ export default function DashboardPage() {
             {agents.map((agent, i) => (
               <li
                 key={agent.id}
-                className="card enter group relative flex items-center gap-4 p-5 transition duration-200 hover:border-amber/40 hover:bg-well/60 focus-within:border-amber/40"
+                className="panel enter group relative flex items-center gap-4 p-5 transition duration-200 hover:border-volt/40 hover:bg-paper-sunk/60 focus-within:border-volt/40"
                 style={{ animationDelay: `${i * 45}ms` }}
               >
                 <span
                   aria-hidden="true"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-amber/25 bg-amber/10 font-display text-base font-bold text-amber"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-volt/25 bg-volt/10 font-display text-base font-bold text-volt"
                 >
                   {agent.name.trim().charAt(0).toUpperCase() || "?"}
                 </span>
@@ -191,9 +191,9 @@ export default function DashboardPage() {
                     href={`/dashboard/agents/${agent.id}`}
                     className="focus-ring rounded before:absolute before:inset-0 before:content-['']"
                   >
-                    <span className="block truncate font-medium text-cream">{agent.name}</span>
+                    <span className="block truncate font-medium text-ink">{agent.name}</span>
                   </Link>
-                  <span className="block font-mono text-[11px] text-dusk">
+                  <span className="block font-mono text-[11px] text-ink-faint">
                     Created {new Date(agent.created_at).toLocaleDateString()}
                   </span>
                 </span>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setRenaming(agent)}
                     aria-label={`Rename ${agent.name}`}
-                    className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-cream/5 hover:text-cream"
+                    className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink"
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
@@ -211,13 +211,13 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setDeleting(agent)}
                     aria-label={`Delete ${agent.name}`}
-                    className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-rose/10 hover:text-rose"
+                    className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-bad/10 hover:text-bad"
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>
                   <ArrowRightIcon
                     aria-hidden="true"
-                    className="ml-1 h-4 w-4 text-dusk transition group-hover:translate-x-0.5 group-hover:text-amber"
+                    className="ml-1 h-4 w-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-volt"
                   />
                 </span>
               </li>
@@ -277,24 +277,24 @@ const STEPS = [
  */
 function GettingStarted() {
   return (
-    <div className="card overflow-hidden">
-      <div className="flex items-center gap-2.5 border-b border-line bg-well/50 px-5 py-3.5">
-        <ChatIcon className="h-4 w-4 text-amber" />
-        <span className="text-[13px] font-medium text-cream">Getting started</span>
-        <span className="ml-auto font-mono text-[11px] text-dusk">about 5 minutes</span>
+    <div className="panel overflow-hidden">
+      <div className="flex items-center gap-2.5 border-b border-edge bg-paper-sunk/50 px-5 py-3.5">
+        <ChatIcon className="h-4 w-4 text-volt" />
+        <span className="text-[13px] font-medium text-ink">Getting started</span>
+        <span className="ml-auto font-mono text-[11px] text-ink-faint">about 5 minutes</span>
       </div>
-      <ol className="divide-y divide-line">
+      <ol className="divide-y divide-edge">
         {STEPS.map((step, i) => (
           <li key={step.title} className="flex items-start gap-4 p-5">
             <span
               aria-hidden="true"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well font-mono text-[12px] text-amber"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk font-mono text-[12px] text-volt"
             >
               {String(i + 1).padStart(2, "0")}
             </span>
             <div>
-              <h3 className="font-display text-[15px] font-bold tracking-tight text-cream">{step.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-mist">{step.body}</p>
+              <h3 className="font-display text-[15px] font-bold tracking-tight text-ink">{step.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-ink-muted">{step.body}</p>
             </div>
           </li>
         ))}

@@ -68,7 +68,7 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
             setSelected(null);
             setError(null);
           }}
-          className="focus-ring mb-4 inline-flex items-center gap-1.5 rounded text-sm text-dusk transition hover:text-cream"
+          className="focus-ring mb-4 inline-flex items-center gap-1.5 rounded text-sm text-ink-faint transition hover:text-ink"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to conversations
@@ -76,17 +76,17 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
 
         {error && <FormError>{error}</FormError>}
 
-        <div className="card overflow-hidden">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line bg-well/50 px-5 py-3">
-            <span className="font-mono text-[12px] text-cream">
+        <div className="panel overflow-hidden">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-edge bg-paper-sunk/50 px-5 py-3">
+            <span className="font-mono text-[12px] text-ink">
               {conversation?.visitor_id?.slice(0, 24) || "unknown visitor"}
             </span>
             {conversation && (
-              <span className="font-mono text-[11px] text-dusk">
+              <span className="font-mono text-[11px] text-ink-faint">
                 {new Date(conversation.created_at).toLocaleString()}
               </span>
             )}
-            <span className="ml-auto font-mono text-[11px] text-dusk">
+            <span className="ml-auto font-mono text-[11px] text-ink-faint">
               {messages.length} message{messages.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -107,8 +107,8 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
                   <span
                     className={`inline-block max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${
                       m.role === "user"
-                        ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
-                        : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
+                        ? "rounded-2xl rounded-br-md bg-volt font-medium text-white"
+                        : "rounded-2xl rounded-bl-md border border-edge bg-paper-sunk text-ink"
                     }`}
                   >
                     {m.content}
@@ -149,7 +149,7 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
       )}
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line-bright bg-card/40 px-6 py-10 text-center text-sm text-dusk">
+        <p className="rounded-2xl border border-dashed border-edge bg-paper-raised/40 px-6 py-10 text-center text-sm text-ink-faint">
           No conversations match &ldquo;{query}&rdquo;.
         </p>
       ) : (
@@ -158,23 +158,23 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
             <li key={c.id} className="enter" style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}>
               <button
                 onClick={() => openConversation(c.id)}
-                className="card focus-ring group flex w-full items-center gap-4 p-4 text-left transition hover:border-amber/40 hover:bg-well/60"
+                className="panel focus-ring group flex w-full items-center gap-4 p-4 text-left transition hover:border-volt/40 hover:bg-paper-sunk/60"
               >
                 <span
                   aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-mist"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-ink-muted"
                 >
                   <ConversationIcon className="h-4 w-4" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-mono text-[13px] text-cream">
+                  <span className="block truncate font-mono text-[13px] text-ink">
                     {c.visitor_id?.slice(0, 20) || "unknown visitor"}
                   </span>
-                  <span className="block text-[13px] text-dusk">
+                  <span className="block text-[13px] text-ink-faint">
                     {new Date(c.created_at).toLocaleString()}
                   </span>
                 </span>
-                <ArrowRightIcon className="h-4 w-4 shrink-0 text-dusk transition group-hover:translate-x-0.5 group-hover:text-amber" />
+                <ArrowRightIcon className="h-4 w-4 shrink-0 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-volt" />
               </button>
             </li>
           ))}

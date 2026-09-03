@@ -157,12 +157,12 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           className={`rounded-2xl border border-dashed p-6 text-center transition duration-200 ${
-            dragging ? "scale-[1.01] border-amber bg-amber/[0.07]" : "border-line-bright bg-card/40"
+            dragging ? "scale-[1.01] border-volt bg-volt/[0.07]" : "border-edge bg-paper-raised/40"
           }`}
         >
           <span
             aria-hidden="true"
-            className={`mx-auto grid h-11 w-11 place-items-center rounded-xl border border-line bg-well text-amber transition ${
+            className={`mx-auto grid h-11 w-11 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt transition ${
               dragging ? "-translate-y-0.5" : ""
             }`}
           >
@@ -181,20 +181,20 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
             className="peer sr-only"
           />
 
-          <p className="mt-4 text-sm text-cream">
+          <p className="mt-4 text-sm text-ink">
             <label
               htmlFor="document-upload"
-              className="cursor-pointer rounded px-1 font-medium text-amber underline decoration-amber/40 underline-offset-4 hover:text-amber-soft peer-focus-visible:ring-2 peer-focus-visible:ring-amber/60"
+              className="cursor-pointer rounded px-1 font-medium text-volt underline decoration-volt/40 underline-offset-4 hover:text-volt peer-focus-visible:ring-2 peer-focus-visible:ring-volt/60"
             >
               Choose a file
             </label>{" "}
-            <span className="text-mist">or drag it here</span>
+            <span className="text-ink-muted">or drag it here</span>
           </p>
-          <p className="mt-1 font-mono text-[11px] text-dusk">PDF, .txt or .md</p>
+          <p className="mt-1 font-mono text-[11px] text-ink-faint">PDF, .txt or .md</p>
 
           {selectedName && (
             <div className="enter mt-5 flex flex-wrap items-center justify-center gap-3">
-              <span className="badge border border-line bg-well text-mist">
+              <span className="badge border border-edge bg-paper-sunk text-ink-muted">
                 <DocumentIcon className="h-3.5 w-3.5" />
                 {selectedName}
               </span>
@@ -230,17 +230,17 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           {documents.map((doc, i) => (
             <li
               key={doc.id}
-              className="card enter flex items-center gap-4 p-4"
+              className="panel enter flex items-center gap-4 p-4"
               style={{ animationDelay: `${i * 45}ms` }}
             >
               <span
                 aria-hidden="true"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-mist"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-ink-muted"
               >
                 <DocumentIcon className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-cream">{doc.filename}</p>
+                <p className="truncate text-sm font-medium text-ink">{doc.filename}</p>
                 <StatusBadge status={doc.status} />
               </div>
               <button
@@ -277,11 +277,11 @@ function StatusBadge({ status }: { status: string }) {
   const done = status === "done";
   const failed = status === "failed";
   const tone = done
-    ? "border-emerald/25 bg-emerald/10 text-emerald"
+    ? "border-good/25 bg-good/10 text-good"
     : failed
-      ? "border-rose/25 bg-rose/10 text-rose"
-      : "border-amber/25 bg-amber/10 text-amber";
-  const dot = done ? "bg-emerald" : failed ? "bg-rose" : "bg-amber animate-pulse";
+      ? "border-bad/25 bg-bad/10 text-bad"
+      : "border-volt/25 bg-volt/10 text-volt";
+  const dot = done ? "bg-good" : failed ? "bg-bad" : "bg-volt animate-pulse";
 
   return (
     <span className={`badge mt-1 border ${tone}`}>

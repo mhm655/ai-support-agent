@@ -95,7 +95,7 @@ export default function Dialog({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-void/80 backdrop-blur-sm motion-safe:animate-[fade-in_150ms_ease-out]"
+        className="absolute inset-0 bg-paper/80 backdrop-blur-sm motion-safe:animate-[fade-in_150ms_ease-out]"
       />
       <div
         ref={panelRef}
@@ -104,14 +104,14 @@ export default function Dialog({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
-        className="card relative w-full max-w-md p-6 outline-none motion-safe:animate-[dialog-in_180ms_cubic-bezier(0.16,1,0.3,1)]"
-        style={{ boxShadow: "var(--shadow-lift)" }}
+        className="panel relative w-full max-w-md p-6 outline-none motion-safe:animate-[dialog-in_180ms_cubic-bezier(0.16,1,0.3,1)]"
+        style={{ boxShadow: "var(--shadow-4)" }}
       >
-        <h2 id={titleId} className="font-display text-lg font-bold tracking-tight text-cream">
+        <h2 id={titleId} className="font-display text-lg font-bold tracking-tight text-ink">
           {title}
         </h2>
         {description && (
-          <p id={descId} className="mt-2 text-sm leading-relaxed text-mist">
+          <p id={descId} className="mt-2 text-sm leading-relaxed text-ink-muted">
             {description}
           </p>
         )}
@@ -162,7 +162,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            className="btn bg-rose text-void hover:bg-rose/85"
+            className="btn bg-bad text-white hover:bg-bad/85"
           >
             {pending && <SpinnerIcon />}
             {pending ? "Deleting…" : confirmLabel}
