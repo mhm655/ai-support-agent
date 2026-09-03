@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import DashboardShell from "@/components/DashboardShell";
+import { ConfirmDialog, PromptDialog } from "@/components/Dialog";
+import { useToast } from "@/components/Toast";
 import {
   ArrowLeftIcon,
   ChatIcon,
   ChartIcon,
   ConversationIcon,
   DocumentIcon,
+  PencilIcon,
   SettingsIcon,
+  TrashIcon,
   UserIcon,
 } from "@/lib/icons";
 import { TABS, type Tab } from "./types";
@@ -35,8 +39,13 @@ const slug = (t: Tab) => t.toLowerCase().replace(/\s+/g, "-");
 
 export default function AgentDetailPage() {
   const { id: agentId } = useParams<{ id: string }>();
+  const router = useRouter();
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>("Test chat");
   const [agentName, setAgentName] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [busy, setBusy] = useState(false);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
@@ -56,6 +65,40 @@ export default function AgentDetailPage() {
     tabRefs.current[next]?.focus();
   }
 
+  async function handleRename(name: string) {
+    setBusy(true);
+    try {
+      await apiFetch(`/agents/${agentId}`, { method: "PATCH", body: JSON.stringify({ name }) });
+      setAgentName(name);
+      setRenaming(false);
+      toast({ title: "Agent renamed" });
+    } catch (err) {
+      toast({
+        tone: "error",
+        title: "Couldn't rename agent",
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDelete() {
+    setBusy(true);
+    try {
+      await apiFetch(`/agents/${agentId}`, { method: "DELETE" });
+      toast({ title: `Deleted "${agentName}"` });
+      router.push("/dashboard");
+    } catch (err) {
+      toast({
+        tone: "error",
+        title: "Couldn't delete agent",
+        description: err instanceof Error ? err.message : undefined,
+      });
+      setBusy(false);
+    }
+  }
+
   return (
     <DashboardShell>
       <Link
@@ -66,17 +109,38 @@ export default function AgentDetailPage() {
         Your agents
       </Link>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
         {agentName ? (
           <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight text-cream sm:text-3xl">
             {agentName}
           </h1>
         ) : (
-          <div className="h-8 w-56 animate-pulse rounded-lg bg-card" aria-hidden="true" />
+          <div className="skeleton h-8 w-56 rounded-lg bg-card" aria-hidden="true" />
         )}
         <span className="badge border border-line bg-well text-dusk">
           <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald" />
           live
+        </span>
+
+        <span className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setRenaming(true)}
+            disabled={!agentName}
+            aria-label="Rename agent"
+            className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-cream/5 hover:text-cream disabled:opacity-40"
+          >
+            <PencilIcon className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeleting(true)}
+            disabled={!agentName}
+            aria-label="Delete agent"
+            className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-rose/10 hover:text-rose disabled:opacity-40"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
         </span>
       </div>
 
@@ -104,10 +168,8 @@ export default function AgentDetailPage() {
                 aria-controls={`panel-${slug(t)}`}
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setTab(t)}
-                className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm whitespace-nowrap transition ${
-                  selected
-                    ? "bg-amber font-medium text-void"
-                    : "text-mist hover:bg-cream/5 hover:text-cream"
+                className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm whitespace-nowrap transition duration-200 ${
+                  selected ? "bg-amber font-medium text-void" : "text-mist hover:bg-cream/5 hover:text-cream"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -119,11 +181,15 @@ export default function AgentDetailPage() {
       </div>
 
       <div
+        // Keyed on the tab so switching re-mounts and replays the enter
+        // animation, which makes the panel change read as a transition
+        // rather than an instant content swap.
+        key={tab}
         role="tabpanel"
         id={`panel-${slug(tab)}`}
         aria-labelledby={`tab-${slug(tab)}`}
         tabIndex={0}
-        className="focus-ring mt-6 rounded-2xl"
+        className="focus-ring enter mt-6 rounded-2xl"
       >
         {tab === "Test chat" && <TestChatTab agentId={agentId} />}
         {tab === "Settings" && <SettingsTab agentId={agentId} />}
@@ -132,6 +198,27 @@ export default function AgentDetailPage() {
         {tab === "Conversations" && <ConversationsTab agentId={agentId} />}
         {tab === "Analytics" && <AnalyticsTab agentId={agentId} />}
       </div>
+
+      <PromptDialog
+        open={renaming}
+        onClose={() => setRenaming(false)}
+        onSubmit={handleRename}
+        title="Rename agent"
+        label="Agent name"
+        initialValue={agentName ?? ""}
+        submitLabel="Rename"
+        pending={busy}
+      />
+
+      <ConfirmDialog
+        open={deleting}
+        onClose={() => setDeleting(false)}
+        onConfirm={handleDelete}
+        title={`Delete "${agentName}"?`}
+        description="Its documents, conversations and captured leads go with it. Any site still embedding this agent will stop getting answers. This can't be undone."
+        confirmLabel="Delete agent"
+        pending={busy}
+      />
     </DashboardShell>
   );
 }

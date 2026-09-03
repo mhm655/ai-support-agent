@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { ToastProvider } from "@/components/Toast";
 
 // Bricolage Grotesque for brand/marketing moments (wordmark, headlines) —
 // chosen over the far more common Space Grotesk specifically because that
@@ -43,7 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}
     >
-      <body className="flex min-h-screen flex-col bg-void font-body text-cream">{children}</body>
+      <body className="flex min-h-screen flex-col bg-void font-body text-cream">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

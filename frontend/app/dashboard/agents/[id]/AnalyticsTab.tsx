@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import Skeleton from "@/components/Skeleton";
+import AnimatedNumber from "@/components/AnimatedNumber";
 import { FormError } from "@/components/FormField";
 import { ChartIcon, ConversationIcon, DocumentIcon, UserIcon } from "@/lib/icons";
 import type { Analytics } from "./types";
@@ -38,14 +39,15 @@ export default function AnalyticsTab({ agentId }: { agentId: string }) {
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {cards.map((card) => (
+      {cards.map((card, i) => (
         <div
           key={card.label}
+          style={{ animationDelay: `${i * 60}ms` }}
           // The highlight is carried by the border and icon tile only. An
           // amber tint on the card background replaces bg-card rather than
           // layering over it, which makes the "important" card the darkest
           // one on the row — the opposite of the intent.
-          className={`card p-5 ${card.highlight ? "border-amber/40" : ""}`}
+          className={`card enter p-5 ${card.highlight ? "border-amber/40" : ""}`}
         >
           <span
             aria-hidden="true"
@@ -55,9 +57,10 @@ export default function AnalyticsTab({ agentId }: { agentId: string }) {
           >
             <card.icon className="h-4.5 w-4.5" />
           </span>
-          <p className="mt-4 font-display text-[32px] leading-none font-bold tabular-nums text-cream">
-            {card.value}
-          </p>
+          <AnimatedNumber
+            value={card.value}
+            className="mt-4 block font-display text-[32px] leading-none font-bold tabular-nums text-cream"
+          />
           <p className="mt-2 text-[13px] text-dusk">{card.label}</p>
         </div>
       ))}

@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import { apiFetch, ApiError } from "@/lib/api";
 import AuthLayout from "@/components/AuthLayout";
 import { FormError, PasswordField, TextField } from "@/components/FormField";
+import { PromptDialog } from "@/components/Dialog";
 import { SpinnerIcon } from "@/lib/icons";
 
 export default function LoginPage() {
@@ -15,6 +16,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Set when the signed-in user has no businesses row yet — see below.
+  const [needsBusiness, setNeedsBusiness] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,22 +38,33 @@ export default function LoginPage() {
         await apiFetch("/businesses/me");
       } catch (err) {
         if (err instanceof ApiError && err.status === 404) {
-          const name = window.prompt("What's your business name?");
-          if (name) {
-            await apiFetch("/businesses/", {
-              method: "POST",
-              body: JSON.stringify({ name }),
-            });
-          }
-        } else {
-          throw err;
+          // Ask in a real dialog rather than window.prompt(), which some
+          // mobile and embedded browsers suppress outright — when that
+          // happened, this repair path silently did nothing and the user
+          // landed on a dashboard that errored on every request.
+          setNeedsBusiness(true);
+          setLoading(false);
+          return;
         }
+        throw err;
       }
 
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function createBusiness(name: string) {
+    setLoading(true);
+    try {
+      await apiFetch("/businesses/", { method: "POST", body: JSON.stringify({ name }) });
+      setNeedsBusiness(false);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't finish setting up your account");
+      setNeedsBusiness(false);
       setLoading(false);
     }
   }
@@ -91,6 +105,18 @@ export default function LoginPage() {
           {loading ? "Logging in…" : "Log in"}
         </button>
       </form>
+
+      <PromptDialog
+        open={needsBusiness}
+        onClose={() => setNeedsBusiness(false)}
+        onSubmit={createBusiness}
+        title="One more thing"
+        description="We just need your business name to finish setting up your account."
+        label="Business name"
+        placeholder="Northside Dental"
+        submitLabel="Continue"
+        pending={loading}
+      />
     </AuthLayout>
   );
 }

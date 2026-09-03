@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/lib/api";
 import { streamChat } from "@/lib/chat";
 import StatusDot from "@/components/StatusDot";
-import { SendIcon } from "@/lib/icons";
-import type { ChatMessage } from "./types";
+import { AlertIcon, SendIcon } from "@/lib/icons";
+import type { ChatMessage, Document } from "./types";
 
-const SUGGESTIONS = [
-  "What are your hours?",
-  "Do you take Cigna?",
-  "How much does a cleaning cost?",
-];
+const SUGGESTIONS = ["What are your hours?", "Do you take Cigna?", "How much does a cleaning cost?"];
 
 // Talks to the SAME public endpoint the embeddable widget uses — this is
 // the fastest way to test an agent works, using the real code path.
@@ -18,6 +15,9 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  // null while unknown, so the warning below doesn't flash before the
+  // document list has actually come back.
+  const [readyDocs, setReadyDocs] = useState<number | null>(null);
   const conversationIdRef = useRef<string | null>(null);
   // Lazy useState initializer, not useRef(Math.random()) — calling an
   // impure function directly in the render body is flagged by the
@@ -26,6 +26,12 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   const [visitorId] = useState(() => `preview-${Math.random().toString(36).slice(2)}`);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    apiFetch<Document[]>(`/agents/${agentId}/documents`)
+      .then((docs) => setReadyDocs(docs.filter((d) => d.status === "done").length))
+      .catch(() => setReadyDocs(null));
+  }, [agentId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -74,92 +80,121 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
   }
 
   return (
-    <div className="card overflow-hidden">
-      <div className="flex items-center gap-2.5 border-b border-line bg-well/50 px-4 py-3">
-        <StatusDot />
-        <span className="text-[13px] font-medium text-cream">Preview</span>
-        <span className="ml-auto font-mono text-[11px] text-dusk">
-          same endpoint as the live widget
-        </span>
-      </div>
+    <div className="flex flex-col gap-3">
+      {/* The most common confusion with this product is an agent that
+          answers "I don't know" to everything — which is correct behaviour
+          when nothing has been uploaded, but reads as broken. Say so before
+          the user spends five minutes testing an empty knowledge base. */}
+      {readyDocs === 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber/30 bg-amber/[0.07] p-4">
+          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
+          <p className="text-[13px] leading-relaxed text-cream">
+            <span className="font-medium">No documents are ready yet.</span>{" "}
+            <span className="text-mist">
+              This agent has nothing to answer from, so it will say it doesn&apos;t know. Upload one
+              in the Documents tab first.
+            </span>
+          </p>
+        </div>
+      )}
 
-      <div
-        ref={scrollRef}
-        role="log"
-        aria-live="polite"
-        className="flex h-[26rem] flex-col gap-3 overflow-y-auto p-5"
-      >
-        {messages.length === 0 ? (
-          <div className="m-auto max-w-xs text-center">
-            <p className="text-sm leading-relaxed text-mist">
-              Ask something a customer would ask. Answers come from the documents you uploaded.
-            </p>
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => {
-                    setInput(s);
-                    inputRef.current?.focus();
-                  }}
-                  className="focus-ring rounded-full border border-line bg-well px-3 py-1.5 text-[12.5px] text-mist transition hover:border-amber/40 hover:text-cream"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((m, i) => {
-            // An empty assistant bubble means the request is in flight: the
-            // first token hasn't landed yet. Show a typing indicator rather
-            // than an ellipsis that looks like part of the answer.
-            const pending = m.role === "assistant" && m.text === "";
-            return (
-              <div key={i} className={m.role === "user" ? "self-end" : "self-start"}>
-                <span
-                  className={`inline-block max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
-                    m.role === "user"
-                      ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
-                      : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
-                  }`}
-                >
-                  {pending ? <TypingDots /> : m.text}
-                </span>
-              </div>
-            );
-          })
-        )}
-      </div>
+      <div className="card overflow-hidden">
+        <div className="flex items-center gap-2.5 border-b border-line bg-well/50 px-4 py-3">
+          <StatusDot />
+          <span className="text-[13px] font-medium text-cream">Preview</span>
+          <span className="ml-auto font-mono text-[11px] text-dusk">same endpoint as the live widget</span>
+        </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input.trim());
-        }}
-        className="flex gap-2 border-t border-line bg-well/30 p-3"
-      >
-        <label htmlFor="test-chat-input" className="sr-only">
-          Ask something a customer might ask
-        </label>
-        <input
-          id="test-chat-input"
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask something a customer might ask…"
-          className="field flex-1 rounded-full"
-        />
-        <button
-          type="submit"
-          disabled={sending || !input.trim()}
-          aria-label="Send message"
-          className="btn btn-primary h-10 w-10 p-0"
+        <div
+          ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          className="flex h-[26rem] flex-col gap-3 overflow-y-auto p-5"
         >
-          <SendIcon className="h-4 w-4" />
+          {messages.length === 0 ? (
+            <div className="m-auto max-w-xs text-center">
+              <p className="text-sm leading-relaxed text-mist">
+                Ask something a customer would ask. Answers come from the documents you uploaded.
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {SUGGESTIONS.map((s, i) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => send(s)}
+                    style={{ animationDelay: `${i * 60}ms` }}
+                    className="focus-ring enter rounded-full border border-line bg-well px-3 py-1.5 text-[12.5px] text-mist transition hover:-translate-y-px hover:border-amber/40 hover:text-cream"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            messages.map((m, i) => {
+              // An empty assistant bubble means the request is in flight: the
+              // first token hasn't landed yet. Show a typing indicator rather
+              // than an ellipsis that looks like part of the answer.
+              const pending = m.role === "assistant" && m.text === "";
+              return (
+                <div key={i} className={`enter ${m.role === "user" ? "self-end" : "self-start"}`}>
+                  <span
+                    className={`inline-block max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                      m.role === "user"
+                        ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
+                        : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
+                    }`}
+                  >
+                    {pending ? <TypingDots /> : m.text}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input.trim());
+          }}
+          className="flex gap-2 border-t border-line bg-well/30 p-3"
+        >
+          <label htmlFor="test-chat-input" className="sr-only">
+            Ask something a customer might ask
+          </label>
+          <input
+            id="test-chat-input"
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask something a customer might ask…"
+            className="field flex-1 rounded-full"
+          />
+          <button
+            type="submit"
+            disabled={sending || !input.trim()}
+            aria-label="Send message"
+            className="btn btn-primary h-10 w-10 p-0"
+          >
+            <SendIcon className="h-4 w-4" />
+          </button>
+        </form>
+      </div>
+
+      {messages.length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            setMessages([]);
+            conversationIdRef.current = null;
+            inputRef.current?.focus();
+          }}
+          className="focus-ring self-start rounded text-[13px] text-dusk transition hover:text-cream"
+        >
+          Start a new conversation
         </button>
-      </form>
+      )}
     </div>
   );
 }
