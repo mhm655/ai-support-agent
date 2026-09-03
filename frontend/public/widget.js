@@ -61,15 +61,15 @@
 
     .aiw-bubble {
       position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
-      border-radius: 50%; background: #E8A33D; color: #0A0C1A; border: none;
+      border-radius: 50%; background: #2F43F5; color: #FFFFFF; border: none;
       cursor: pointer; z-index: 2147483000; display: flex; align-items: center;
       justify-content: center; padding: 0;
-      box-shadow: 0 4px 16px rgba(232,163,61,0.35), 0 2px 6px rgba(10,12,26,0.3);
+      box-shadow: 0 4px 16px rgba(47,67,245,0.30), 0 2px 6px rgba(10,12,26,0.3);
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-    .aiw-bubble:hover { transform: scale(1.06); box-shadow: 0 6px 22px rgba(232,163,61,0.45); }
+    .aiw-bubble:hover { transform: scale(1.06); box-shadow: 0 6px 22px rgba(47,67,245,0.40); }
     .aiw-bubble:active { transform: scale(0.98); }
-    .aiw-bubble:focus-visible { outline: 2px solid #E8A33D; outline-offset: 3px; }
+    .aiw-bubble:focus-visible { outline: 2px solid #2F43F5; outline-offset: 3px; }
     .aiw-bubble .aiw-icon-close { display: none; }
     .aiw-bubble[aria-expanded="true"] .aiw-icon-open { display: none; }
     .aiw-bubble[aria-expanded="true"] .aiw-icon-close { display: block; }
@@ -77,7 +77,7 @@
     /* Unread dot, shown when the nudge is waiting and the panel is shut. */
     .aiw-badge {
       position: absolute; top: -2px; right: -2px; width: 14px; height: 14px;
-      border-radius: 50%; background: #F2705F; border: 2px solid #fff;
+      border-radius: 50%; background: #C33127; border: 2px solid #fff;
       display: none;
     }
     .aiw-bubble.aiw-has-unread .aiw-badge { display: block; }
@@ -86,11 +86,11 @@
        and never reappears once dismissed in this session. */
     .aiw-nudge {
       position: fixed; bottom: 30px; right: 88px; max-width: 230px;
-      background: #171A33; color: #F4F2EC; border: 1px solid #262B4C;
+      background: #FBFAF8; color: #17160F; border: 1px solid #DED9CF;
       border-radius: 14px 14px 4px 14px; padding: 11px 34px 11px 14px;
       font-size: 13px; line-height: 1.45; z-index: 2147483000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      box-shadow: 0 14px 36px -14px rgba(0,0,0,0.7);
+      box-shadow: 0 2px 4px rgba(23,22,15,0.07), 0 18px 40px -12px rgba(23,22,15,0.2);
       cursor: pointer; opacity: 0; transform: translateY(6px);
       transition: opacity 0.25s ease, transform 0.25s ease;
       pointer-events: none;
@@ -98,21 +98,21 @@
     .aiw-nudge.aiw-show { opacity: 1; transform: translateY(0); pointer-events: auto; }
     .aiw-nudge-close {
       position: absolute; top: 6px; right: 6px; width: 20px; height: 20px;
-      border: none; background: transparent; color: #6B7499; cursor: pointer;
+      border: none; background: transparent; color: #8D8A7E; cursor: pointer;
       border-radius: 6px; display: flex; align-items: center; justify-content: center;
       padding: 0; font-size: 14px; line-height: 1;
     }
-    .aiw-nudge-close:hover { color: #F4F2EC; }
+    .aiw-nudge-close:hover { color: #17160F; }
     @media (max-width: 480px) { .aiw-nudge { display: none; } }
 
     .aiw-panel {
       position: fixed; bottom: 88px; right: 20px; width: 360px; height: 520px;
       max-height: calc(100vh - 120px);
-      background: #101227; border: 1px solid #262B4C; border-radius: 18px;
-      box-shadow: 0 24px 60px -20px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.4);
+      background: #FBFAF8; border: 1px solid #DED9CF; border-radius: 14px;
+      box-shadow: 0 3px 6px rgba(23,22,15,0.08), 0 36px 80px -24px rgba(23,22,15,0.3);
       display: flex; flex-direction: column; overflow: hidden; z-index: 2147483000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #F4F2EC;
+      color: #17160F;
       opacity: 0; visibility: hidden; pointer-events: none;
       transform: translateY(12px) scale(0.98); transform-origin: bottom right;
       transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
@@ -134,39 +134,39 @@
 
     .aiw-header {
       display: flex; align-items: center; gap: 9px;
-      background: #1D2140; border-bottom: 1px solid #262B4C;
+      background: #ECEAE4; border-bottom: 1px solid #DED9CF;
       padding: 13px 16px; font-size: 13px; font-weight: 600;
     }
-    .aiw-header-sub { margin-left: auto; font-size: 10px; font-weight: 400; color: #6B7499;
+    .aiw-header-sub { margin-left: auto; font-size: 10px; font-weight: 400; color: #8D8A7E;
       letter-spacing: 0.08em; text-transform: uppercase; }
     .aiw-dot { position: relative; display: inline-flex; width: 7px; height: 7px; flex: none; }
     .aiw-dot::before, .aiw-dot::after {
-      content: ""; position: absolute; inset: 0; border-radius: 50%; background: #34D399;
+      content: ""; position: absolute; inset: 0; border-radius: 50%; background: #128A4D;
     }
     .aiw-dot::before { animation: aiw-ping 1.8s cubic-bezier(0,0,0.2,1) infinite; }
     @keyframes aiw-ping { 75%, 100% { transform: scale(2.2); opacity: 0; } }
 
     .aiw-messages {
       flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column;
-      gap: 10px; background: #101227;
-      scrollbar-width: thin; scrollbar-color: #363C68 transparent;
+      gap: 10px; background: #FBFAF8;
+      scrollbar-width: thin; scrollbar-color: #C6C0B2 transparent;
       overscroll-behavior: contain;
     }
-    .aiw-empty { color: #A2AAC6; font-size: 13px; line-height: 1.55; margin: 0; }
+    .aiw-empty { color: #57544A; font-size: 13px; line-height: 1.55; margin: 0; }
 
     /* Starter chips: the hardest part of a blank chat is knowing what it
        can answer. */
     .aiw-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .aiw-chip {
-      background: #1D2140; color: #A2AAC6; border: 1px solid #262B4C;
+      background: #ECEAE4; color: #57544A; border: 1px solid #DED9CF;
       border-radius: 999px; padding: 6px 11px; font-size: 12px; cursor: pointer;
       font-family: inherit; transition: color 0.15s ease, border-color 0.15s ease;
     }
-    .aiw-chip:hover { color: #F4F2EC; border-color: rgba(232,163,61,0.4); }
-    .aiw-chip:focus-visible { outline: 2px solid #E8A33D; outline-offset: 2px; }
+    .aiw-chip:hover { color: #17160F; border-color: rgba(232,163,61,0.4); }
+    .aiw-chip:focus-visible { outline: 2px solid #2F43F5; outline-offset: 2px; }
 
     .aiw-time {
-      align-self: center; font-size: 10px; color: #6B7499; letter-spacing: 0.06em;
+      align-self: center; font-size: 10px; color: #8D8A7E; letter-spacing: 0.06em;
       text-transform: uppercase; margin: 2px 0;
     }
 
@@ -177,28 +177,29 @@
     }
     @keyframes aiw-rise { from { opacity: 0; transform: translateY(4px); } }
     .aiw-msg.user {
-      align-self: flex-end; background: #E8A33D; color: #0A0C1A; font-weight: 500;
+      align-self: flex-end; background: #2F43F5; color: #FFFFFF; font-weight: 500;
       border-radius: 14px 14px 4px 14px;
     }
     .aiw-msg.assistant {
-      align-self: flex-start; background: #1D2140; color: #F4F2EC;
-      border: 1px solid #262B4C; border-radius: 14px 14px 14px 4px;
+      align-self: flex-start; background: #FFFFFF; color: #17160F;
+      border: 1px solid #DED9CF; border-radius: 14px 14px 14px 4px;
+      box-shadow: 0 1px 2px rgba(23,22,15,0.05);
     }
-    .aiw-msg a { color: #F7CE8A; text-decoration: underline; text-underline-offset: 2px; }
-    .aiw-msg.user a { color: #0A0C1A; }
+    .aiw-msg a { color: #2F43F5; text-decoration: underline; text-underline-offset: 2px; }
+    .aiw-msg.user a { color: #FFFFFF; }
 
     .aiw-retry {
       display: block; margin-top: 7px; background: transparent; border: none;
-      padding: 0; color: #F7CE8A; font-size: 12px; font-weight: 600; cursor: pointer;
+      padding: 0; color: #2F43F5; font-size: 12px; font-weight: 600; cursor: pointer;
       font-family: inherit; text-decoration: underline; text-underline-offset: 2px;
     }
-    .aiw-retry:focus-visible { outline: 2px solid #E8A33D; outline-offset: 2px; }
+    .aiw-retry:focus-visible { outline: 2px solid #2F43F5; outline-offset: 2px; }
 
     /* Shown in place of the assistant bubble's text until the first token
        arrives, so a slow first response doesn't look like a dead widget. */
     .aiw-typing { display: inline-flex; gap: 4px; padding: 3px 0; }
     .aiw-typing span {
-      width: 5px; height: 5px; border-radius: 50%; background: #6B7499;
+      width: 5px; height: 5px; border-radius: 50%; background: #8D8A7E;
       animation: aiw-blink 1.2s infinite ease-in-out;
     }
     .aiw-typing span:nth-child(2) { animation-delay: 0.16s; }
@@ -207,29 +208,29 @@
 
     .aiw-input-row {
       display: flex; align-items: center; gap: 8px; padding: 10px;
-      border-top: 1px solid #262B4C; background: #101227;
+      border-top: 1px solid #DED9CF; background: #FBFAF8;
     }
     .aiw-input {
-      flex: 1; min-width: 0; border: 1px solid #262B4C; background: #1D2140;
+      flex: 1; min-width: 0; border: 1px solid #DED9CF; background: #ECEAE4;
       border-radius: 999px; padding: 10px 14px; font-size: 16px; outline: none;
-      color: #F4F2EC; font-family: inherit;
+      color: #17160F; font-family: inherit;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     /* 16px above keeps iOS Safari from zooming the page on focus; step it
        back down where that behaviour doesn't apply. */
     @media (min-width: 481px) { .aiw-input { font-size: 13px; } }
-    .aiw-input::placeholder { color: #6B7499; }
-    .aiw-input:focus-visible { border-color: #E8A33D; box-shadow: 0 0 0 3px rgba(232,163,61,0.2); }
+    .aiw-input::placeholder { color: #8D8A7E; }
+    .aiw-input:focus-visible { border-color: #2F43F5; box-shadow: 0 0 0 3px rgba(47,67,245,0.22); }
 
     .aiw-send {
       flex: none; width: 38px; height: 38px; border: none; border-radius: 50%;
-      background: #E8A33D; color: #0A0C1A; cursor: pointer; display: flex;
+      background: #2F43F5; color: #FFFFFF; cursor: pointer; display: flex;
       align-items: center; justify-content: center; padding: 0;
       transition: opacity 0.15s ease, transform 0.15s ease;
     }
     .aiw-send:hover:not(:disabled) { transform: scale(1.05); }
     .aiw-send:disabled { opacity: 0.4; cursor: not-allowed; }
-    .aiw-send:focus-visible { outline: 2px solid #E8A33D; outline-offset: 2px; }
+    .aiw-send:focus-visible { outline: 2px solid #2F43F5; outline-offset: 2px; }
 
     @media (prefers-reduced-motion: reduce) {
       .aiw-bubble, .aiw-panel, .aiw-msg, .aiw-send, .aiw-nudge,
