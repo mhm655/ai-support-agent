@@ -83,6 +83,34 @@ body {
   scrollbar-width: thin;
 }
 
+
+/*
+ * Motion vocabulary. Kept small on purpose: things enter by rising slightly
+ * and fading, panels scale in a touch, and nothing loops except genuine
+ * activity indicators. The reduced-motion block at the bottom of this file
+ * neutralises every one of these globally.
+ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Sweeps a highlight across loading placeholders so a slow request reads as
+   "working" rather than "stuck". */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
 @layer components {
   /*
    * Shared primitives. These live here rather than as React components
@@ -167,6 +195,54 @@ body {
 }
 
 @layer utilities {
+  /*
+   * Scroll-reveal states. These live in CSS rather than as toggled Tailwind
+   * classes so the reduced-motion rule below can force the visible state
+   * unconditionally — otherwise content would stay at opacity 0 for anyone
+   * whose IntersectionObserver never fires (no support, or a document that
+   * never paints, such as a screenshotting bot).
+   */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal[data-visible="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Applied to list rows and panels as they first appear. The delay is set
+     inline by the caller so a list staggers instead of popping as one block. */
+  .enter {
+    animation: rise-in 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(244 242 236 / 0.05),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+
   /* Soft radial accent light. Used behind hero/brand areas to stop large
      flat navy fields from looking like an unstyled background. */
   .glow-amber {
@@ -203,9 +279,17 @@ body {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /*
+     * `animation: none`, not a 0.01ms duration. Several entrance animations
+     * use animation-fill-mode: backwards, which holds the element at its
+     * "from" state (opacity 0) until the animation actually starts — and an
+     * animation only starts once the document paints a frame. Shortening the
+     * duration doesn't help a pending animation: it stays pending, and the
+     * content stays invisible. Removing the animation outright means the
+     * element simply renders in its normal, visible state.
+     */
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }

@@ -99,6 +99,11 @@ const INTERNALS = [
   },
 ];
 
+// Wired through from the server component so the hero can talk to the real
+// demo agent when one is configured, and degrade to the scripted loop when
+// it isn't — rather than faking a live conversation.
+const DEMO_AGENT_ID = process.env.NEXT_PUBLIC_DEMO_AGENT_ID;
+
 const STACK = ["Next.js", "FastAPI", "Postgres + pgvector", "Supabase Auth", "Gemini", "SSE streaming"];
 
 export default function LandingPage() {
@@ -182,7 +187,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex justify-center md:justify-end">
-            <HeroTranscript />
+            <HeroTranscript demoAgentId={DEMO_AGENT_ID} />
           </div>
         </div>
       </section>

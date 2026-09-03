@@ -4,9 +4,14 @@ import { useEffect, useRef, useState } from "react";
 
 /*
  * Reveals children once as they scroll into view. Compositor-friendly
- * (transform/opacity only) and IntersectionObserver-based, so there are no
- * scroll listeners on the main thread. Reduced motion is handled globally
- * in globals.css, which zeroes the transition duration.
+ * (opacity/transform only) and IntersectionObserver-based, so there are no
+ * scroll listeners on the main thread.
+ *
+ * The two visual states live in globals.css as `.reveal` /
+ * `.reveal[data-visible]` rather than as classes toggled from here, so the
+ * reduced-motion media query can pin the element to the visible state. If
+ * visibility depended on this component's state alone, anything that never
+ * fires the observer would leave the content permanently at opacity 0.
  */
 export default function Reveal({
   children,
@@ -23,6 +28,15 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Very old browsers with no IntersectionObserver: reveal immediately
+    // rather than never. Deferred by a tick so this isn't a synchronous
+    // state write from the effect body.
+    if (typeof IntersectionObserver === "undefined") {
+      const t = setTimeout(() => setVisible(true), 0);
+      return () => clearTimeout(t);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -39,14 +53,9 @@ export default function Reveal({
   return (
     <div
       ref={ref}
+      data-visible={visible}
       style={{ transitionDelay: `${delayMs}ms` }}
-      // Transform and opacity only — deliberately no `filter`/blur. A
-      // non-none filter turns this wrapper into a containing block for
-      // absolutely positioned descendants, which silently re-anchors
-      // anything a caller positions against an outer element.
-      className={`transition-all duration-700 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
-      } ${className}`}
+      className={`reveal ${className}`}
     >
       {children}
     </div>

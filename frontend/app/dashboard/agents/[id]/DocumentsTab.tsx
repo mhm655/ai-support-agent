@@ -5,24 +5,46 @@ import { apiFetch } from "@/lib/api";
 import EmptyState from "@/components/EmptyState";
 import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
+import { ConfirmDialog } from "@/components/Dialog";
+import { useToast } from "@/components/Toast";
 import { DocumentIcon, SpinnerIcon, TrashIcon, UploadIcon } from "@/lib/icons";
 import type { Document } from "./types";
 
 const ACCEPT = ".pdf,.txt,.md";
 
 export default function DocumentsTab({ agentId }: { agentId: string }) {
+  const toast = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Document | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Tracks which documents were still processing on the previous poll, so a
+  // transition to "done" can be announced. Ingestion is a background task —
+  // without this you have to sit and watch the badge to know it finished.
+  const pendingIdsRef = useRef<Set<string>>(new Set());
+
   async function load() {
-    setLoading(true);
     try {
       const data = await apiFetch<Document[]>(`/agents/${agentId}/documents`);
+
+      const stillPending = new Set(data.filter((d) => d.status === "pending").map((d) => d.id));
+      for (const doc of data) {
+        if (pendingIdsRef.current.has(doc.id) && doc.status !== "pending") {
+          if (doc.status === "done") {
+            toast({ title: `"${doc.filename}" is ready`, description: "The agent can answer from it now." });
+          } else {
+            toast({ tone: "error", title: `Couldn't process "${doc.filename}"` });
+          }
+        }
+      }
+      pendingIdsRef.current = stillPending;
+
       setDocuments(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load documents");
@@ -93,20 +115,35 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
 
       if (fileInputRef.current) fileInputRef.current.value = "";
       setSelectedName(null);
+      toast({ title: "Uploaded", description: "Processing now — this usually takes a few seconds." });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setError(message);
+      toast({ tone: "error", title: "Upload failed", description: message });
     } finally {
       setUploading(false);
     }
   }
 
-  async function handleDelete(documentId: string, filename: string) {
-    if (!window.confirm(`Delete "${filename}"? The agent will no longer be able to answer from it.`)) {
-      return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await apiFetch(`/documents/${pendingDelete.id}`, { method: "DELETE" });
+      const name = pendingDelete.filename;
+      setPendingDelete(null);
+      await load();
+      toast({ title: `Deleted "${name}"` });
+    } catch (err) {
+      toast({
+        tone: "error",
+        title: "Couldn't delete document",
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setDeleting(false);
     }
-    await apiFetch(`/documents/${documentId}`, { method: "DELETE" });
-    await load();
   }
 
   return (
@@ -119,13 +156,15 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          className={`rounded-2xl border border-dashed p-6 text-center transition ${
-            dragging ? "border-amber bg-amber/[0.07]" : "border-line-bright bg-card/40"
+          className={`rounded-2xl border border-dashed p-6 text-center transition duration-200 ${
+            dragging ? "scale-[1.01] border-amber bg-amber/[0.07]" : "border-line-bright bg-card/40"
           }`}
         >
           <span
             aria-hidden="true"
-            className="mx-auto grid h-11 w-11 place-items-center rounded-xl border border-line bg-well text-amber"
+            className={`mx-auto grid h-11 w-11 place-items-center rounded-xl border border-line bg-well text-amber transition ${
+              dragging ? "-translate-y-0.5" : ""
+            }`}
           >
             <UploadIcon className="h-5 w-5" />
           </span>
@@ -154,7 +193,7 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           <p className="mt-1 font-mono text-[11px] text-dusk">PDF, .txt or .md</p>
 
           {selectedName && (
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <div className="enter mt-5 flex flex-wrap items-center justify-center gap-3">
               <span className="badge border border-line bg-well text-mist">
                 <DocumentIcon className="h-3.5 w-3.5" />
                 {selectedName}
@@ -188,8 +227,12 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
         />
       ) : (
         <ul className="flex flex-col gap-2">
-          {documents.map((doc) => (
-            <li key={doc.id} className="card flex items-center gap-4 p-4">
+          {documents.map((doc, i) => (
+            <li
+              key={doc.id}
+              className="card enter flex items-center gap-4 p-4"
+              style={{ animationDelay: `${i * 45}ms` }}
+            >
               <span
                 aria-hidden="true"
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-mist"
@@ -201,7 +244,7 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
                 <StatusBadge status={doc.status} />
               </div>
               <button
-                onClick={() => handleDelete(doc.id, doc.filename)}
+                onClick={() => setPendingDelete(doc)}
                 aria-label={`Delete ${doc.filename}`}
                 className="btn btn-danger shrink-0 px-3 py-1.5 text-xs"
               >
@@ -212,6 +255,15 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={handleDelete}
+        title={`Delete "${pendingDelete?.filename}"?`}
+        description="The agent will no longer be able to answer from it. You can upload it again later."
+        pending={deleting}
+      />
     </div>
   );
 }
@@ -234,7 +286,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`badge mt-1 border ${tone}`}>
       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-      {status}
+      {done ? "ready" : status}
     </span>
   );
 }

@@ -57,7 +57,11 @@ async def get_agent(agent_id: str, business_id: CurrentBusinessIdDep) -> AgentRe
 @router.patch("/{agent_id}", response_model=AgentResponse)
 async def update_agent(agent_id: str, payload: AgentUpdate, business_id: CurrentBusinessIdDep) -> AgentResponse:
     supabase = get_supabase()
-    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
+    # exclude_unset, not "drop the Nones": personality and instructions are
+    # nullable, so an explicit null is a real instruction to clear the field.
+    # Filtering all Nones out made clearing one silently revert on the next
+    # load, and clearing both fail with "No fields to update".
+    updates = payload.model_dump(exclude_unset=True)
     if not updates:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
 

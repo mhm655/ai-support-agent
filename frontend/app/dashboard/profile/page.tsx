@@ -8,6 +8,7 @@ import DashboardShell from "@/components/DashboardShell";
 import PageHeading from "@/components/PageHeading";
 import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
+import { useToast } from "@/components/Toast";
 import { CheckIcon, ChatIcon, ClockIcon, SpinnerIcon, UserIcon } from "@/lib/icons";
 
 type Business = {
@@ -18,6 +19,7 @@ type Business = {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const toast = useToast();
   const nameId = useId();
 
   const [business, setBusiness] = useState<Business | null>(null);
@@ -73,8 +75,11 @@ export default function ProfilePage() {
       setBusiness(updated);
       setName(updated.name);
       setSaved(true);
+      toast({ title: "Business name updated" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save changes");
+      const message = err instanceof Error ? err.message : "Failed to save changes";
+      setError(message);
+      toast({ tone: "error", title: "Couldn't save changes", description: message });
     } finally {
       setSaving(false);
     }

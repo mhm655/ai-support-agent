@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api";
 import CopyButton from "@/components/CopyButton";
 import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
+import { useToast } from "@/components/Toast";
 import { CheckIcon, CodeIcon, SpinnerIcon } from "@/lib/icons";
 import type { Agent } from "./types";
 
@@ -12,6 +13,7 @@ const PERSONALITY_MAX = 1000;
 const INSTRUCTIONS_MAX = 4000;
 
 export default function SettingsTab({ agentId }: { agentId: string }) {
+  const toast = useToast();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -58,8 +60,11 @@ export default function SettingsTab({ agentId }: { agentId: string }) {
       setPersonality(updated.personality ?? "");
       setInstructions(updated.instructions ?? "");
       setSaved(true);
+      toast({ title: "Settings saved", description: "New conversations use them right away." });
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save changes");
+      const message = err instanceof Error ? err.message : "Failed to save changes";
+      setSaveError(message);
+      toast({ tone: "error", title: "Couldn't save settings", description: message });
     } finally {
       setSaving(false);
     }
