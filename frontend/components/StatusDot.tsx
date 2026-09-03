@@ -6,8 +6,8 @@
 export default function StatusDot({ className = "" }: { className?: string }) {
   return (
     <span className={`relative flex h-2 w-2 ${className}`} aria-hidden="true">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald opacity-75" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald" />
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-good opacity-75" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-good" />
     </span>
   );
 }

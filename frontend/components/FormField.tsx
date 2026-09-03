@@ -52,7 +52,7 @@ export function TextField({
         onChange={(e) => onChange?.(e.target.value)}
         className="field"
       />
-      {hint && <span className="text-xs text-dusk">{hint}</span>}
+      {hint && <span className="text-xs text-ink-faint">{hint}</span>}
     </div>
   );
 }
@@ -95,7 +95,7 @@ export function PasswordField({
           onClick={() => setShown((v) => !v)}
           aria-label={shown ? "Hide password" : "Show password"}
           aria-pressed={shown}
-          className="focus-ring absolute inset-y-1 right-1 flex w-9 items-center justify-center rounded-lg text-dusk transition hover:bg-cream/5 hover:text-cream"
+          className="focus-ring absolute inset-y-1 right-1 flex w-9 items-center justify-center rounded-lg text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink"
         >
           {shown ? <EyeOffIcon /> : <EyeIcon />}
         </button>
@@ -112,7 +112,7 @@ export function FormError({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="alert"
-      className="flex items-start gap-2 rounded-xl border border-rose/25 bg-rose/10 px-3 py-2.5 text-sm leading-relaxed text-rose"
+      className="flex items-start gap-2 rounded-xl border border-bad/25 bg-bad/10 px-3 py-2.5 text-sm leading-relaxed text-bad"
     >
       {children}
     </p>

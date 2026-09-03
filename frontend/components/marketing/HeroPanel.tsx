@@ -140,23 +140,23 @@ export default function HeroPanel({ demoAgentId }: { demoAgentId?: string }) {
         </p>
       )}
 
-      <div className="card overflow-hidden" style={{ boxShadow: "var(--shadow-lift)" }}>
-        <div className="flex items-center gap-2.5 border-b border-line bg-well/60 px-4 py-3">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-amber/15 font-display text-xs font-bold text-amber">
+      <div className="panel-dark overflow-hidden" style={{ boxShadow: "var(--shadow-4)" }}>
+        <div className="flex items-center gap-2.5 border-b border-edge-dark bg-slab-raised px-4 py-3">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-volt font-display text-xs font-bold text-white">
             {live ? "F" : "N"}
           </span>
-          <span className="text-[13px] font-medium text-cream">
+          <span className="text-[13px] font-medium text-bone">
             {live ? "Live demo agent" : "Northside Dental"}
           </span>
           <span className="ml-auto flex items-center gap-1.5">
             {/* Conveys real state: whether this preview is answering. */}
             <span className="relative flex h-2 w-2" aria-hidden="true">
               {!reduce && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald opacity-75" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-good opacity-75" />
               )}
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-good" />
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-dusk">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-bone-faint">
               {live ? "live" : "demo"}
             </span>
           </span>
@@ -177,18 +177,18 @@ export default function HeroPanel({ demoAgentId }: { demoAgentId?: string }) {
                 <p
                   className={`max-w-[15rem] px-3.5 py-2 text-[13px] leading-snug ${
                     msg.role === "user"
-                      ? "rounded-2xl rounded-br-md bg-amber font-medium text-void"
-                      : "rounded-2xl rounded-bl-md border border-line bg-well text-cream"
+                      ? "rounded-[4px] bg-volt font-medium text-white"
+                      : "rounded-[4px] border border-edge-dark bg-slab-raised text-bone"
                   }`}
                 >
                   {msg.text}
-                  {typing && <span className="ml-px inline-block w-[2px] animate-pulse">|</span>}
+                  {typing && <span className="ml-px inline-block w-[2px] animate-pulse text-volt">|</span>}
                   {pending && (
                     <span className="flex items-center gap-1 py-1" aria-label="Agent is typing">
                       {[0, 150, 300].map((d) => (
                         <span
                           key={d}
-                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-dusk"
+                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-bone-faint"
                           style={{ animationDelay: `${d}ms` }}
                         />
                       ))}
@@ -206,7 +206,7 @@ export default function HeroPanel({ demoAgentId }: { demoAgentId?: string }) {
               e.preventDefault();
               send(input.trim());
             }}
-            className="flex items-center gap-2 border-t border-line p-3"
+            className="flex items-center gap-2 border-t border-edge-dark p-3"
           >
             <label htmlFor="hero-chat" className="sr-only">
               Ask the demo agent a question
@@ -216,22 +216,22 @@ export default function HeroPanel({ demoAgentId }: { demoAgentId?: string }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={live ? "Ask another question" : "Ask it something yourself"}
-              className="field flex-1 rounded-full py-2 text-[12.5px]"
+              className="field-dark flex-1 py-2 text-[12.5px]"
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
               aria-label="Send message"
-              className="btn btn-primary h-9 w-9 shrink-0 p-0"
+              className="btn btn-volt h-9 w-9 shrink-0 p-0"
             >
               <PaperPlaneTilt weight="bold" className="h-4 w-4" />
             </button>
           </form>
         ) : (
-          <div className="border-t border-line p-3">
+          <div className="border-t border-edge-dark p-3">
             <Link
               href="/demo"
-              className="focus-ring flex items-center justify-between rounded-full border border-line bg-well px-3.5 py-2 text-[12.5px] text-mist transition hover:border-amber/40 hover:text-cream"
+              className="focus-ring flex items-center justify-between rounded-[4px] border border-edge-dark bg-slab-raised px-3.5 py-2 text-[12.5px] text-bone-muted transition hover:border-volt hover:text-bone"
             >
               Ask it something yourself
               <ArrowRight weight="bold" className="h-3.5 w-3.5" />
@@ -247,10 +247,10 @@ export default function HeroPanel({ demoAgentId }: { demoAgentId?: string }) {
         initial={false}
         animate={scriptDone && !live ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-full border border-emerald/30 bg-card px-3.5 py-2 text-[12px] font-medium text-cream sm:-left-8"
-        style={{ boxShadow: "var(--shadow-lift)" }}
+        className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-full border border-edge bg-paper-raised px-3.5 py-2 text-[12px] font-medium text-ink sm:-left-8"
+        style={{ boxShadow: "var(--shadow-4)" }}
       >
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald/15 text-emerald">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-good/15 text-good">
           <Check weight="bold" className="h-3 w-3" />
         </span>
         Lead captured

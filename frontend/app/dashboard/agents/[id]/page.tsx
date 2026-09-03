@@ -103,7 +103,7 @@ export default function AgentDetailPage() {
     <DashboardShell>
       <Link
         href="/dashboard"
-        className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-dusk transition hover:text-cream"
+        className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-ink-faint transition hover:text-ink"
       >
         <ArrowLeftIcon className="h-4 w-4" />
         Your agents
@@ -111,14 +111,14 @@ export default function AgentDetailPage() {
 
       <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
         {agentName ? (
-          <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight text-cream sm:text-3xl">
+          <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight text-ink sm:text-3xl">
             {agentName}
           </h1>
         ) : (
-          <div className="skeleton h-8 w-56 rounded-lg bg-card" aria-hidden="true" />
+          <div className="skeleton h-8 w-56 rounded-lg bg-paper-raised" aria-hidden="true" />
         )}
-        <span className="badge border border-line bg-well text-dusk">
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald" />
+        <span className="badge border border-edge bg-paper-sunk text-ink-faint">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-good" />
           live
         </span>
 
@@ -128,7 +128,7 @@ export default function AgentDetailPage() {
             onClick={() => setRenaming(true)}
             disabled={!agentName}
             aria-label="Rename agent"
-            className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-cream/5 hover:text-cream disabled:opacity-40"
+            className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink disabled:opacity-40"
           >
             <PencilIcon className="h-4 w-4" />
           </button>
@@ -137,7 +137,7 @@ export default function AgentDetailPage() {
             onClick={() => setDeleting(true)}
             disabled={!agentName}
             aria-label="Delete agent"
-            className="focus-ring rounded-lg p-2 text-dusk transition hover:bg-rose/10 hover:text-rose disabled:opacity-40"
+            className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-bad/10 hover:text-bad disabled:opacity-40"
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -151,7 +151,7 @@ export default function AgentDetailPage() {
           role="tablist"
           aria-label="Agent sections"
           onKeyDown={handleTabKeyDown}
-          className="inline-flex min-w-full gap-1 rounded-full border border-line bg-card p-1 sm:min-w-0"
+          className="inline-flex min-w-full gap-1 rounded-full border border-edge bg-panel p-1 sm:min-w-0"
         >
           {TABS.map((t) => {
             const Icon = TAB_ICONS[t];
@@ -169,7 +169,7 @@ export default function AgentDetailPage() {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setTab(t)}
                 className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm whitespace-nowrap transition duration-200 ${
-                  selected ? "bg-amber font-medium text-void" : "text-mist hover:bg-cream/5 hover:text-cream"
+                  selected ? "bg-volt font-medium text-white" : "text-ink-muted hover:bg-paper-raised/5 hover:text-ink"
                 }`}
               >
                 <Icon className="h-4 w-4" />

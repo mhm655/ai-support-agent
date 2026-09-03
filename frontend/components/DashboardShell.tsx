@@ -34,7 +34,7 @@ export default function DashboardShell({
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-line bg-void/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-edge bg-paper/80 backdrop-blur-xl">
         <div className={`mx-auto flex w-full ${width} items-center gap-4 px-5 py-3 sm:px-8`}>
           <BrandLink href="/dashboard" />
 
@@ -53,8 +53,8 @@ export default function DashboardShell({
                   aria-current={active ? "page" : undefined}
                   className={`focus-ring flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${
                     active
-                      ? "bg-cream/10 font-medium text-cream"
-                      : "text-mist hover:bg-cream/5 hover:text-cream"
+                      ? "bg-paper-raised/10 font-medium text-ink"
+                      : "text-ink-muted hover:bg-paper-raised/5 hover:text-ink"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -75,8 +75,8 @@ export default function DashboardShell({
 
       <main className={`relative mx-auto w-full ${width} flex-1 px-5 py-10 sm:px-8`}>{children}</main>
 
-      <footer className="relative border-t border-line px-5 py-6 sm:px-8">
-        <p className="mx-auto max-w-5xl font-mono text-[11px] text-dusk">
+      <footer className="relative border-t border-edge px-5 py-6 sm:px-8">
+        <p className="mx-auto max-w-5xl font-mono text-[11px] text-ink-faint">
           frontdesk.ai, a portfolio project
         </p>
       </footer>

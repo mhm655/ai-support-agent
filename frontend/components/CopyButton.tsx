@@ -12,10 +12,13 @@ export default function CopyButton({
   value,
   label = "Copy",
   className = "",
+  tone = "light",
 }: {
   value: string;
   label?: string;
   className?: string;
+  /** "dark" when this sits on an inverted slab, e.g. the embed snippet. */
+  tone?: "light" | "dark";
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -37,9 +40,9 @@ export default function CopyButton({
   }
 
   return (
-    <button type="button" onClick={handleCopy} className={`btn btn-ghost px-3 py-1.5 text-xs ${className}`}>
+    <button type="button" onClick={handleCopy} className={`btn ${tone === "dark" ? "btn-outline-invert" : "btn-ghost"} px-3 py-1.5 text-xs ${className}`}>
       {copied ? (
-        <Check weight="bold" className="h-3.5 w-3.5 text-emerald" />
+        <Check weight="bold" className="h-3.5 w-3.5 text-good" />
       ) : (
         <Copy weight="bold" className="h-3.5 w-3.5" />
       )}

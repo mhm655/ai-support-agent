@@ -57,9 +57,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 const TONE_STYLES: Record<Tone, { ring: string; icon: string }> = {
-  success: { ring: "border-emerald/30", icon: "bg-emerald/15 text-emerald" },
-  error: { ring: "border-rose/30", icon: "bg-rose/15 text-rose" },
-  info: { ring: "border-line-bright", icon: "bg-amber/15 text-amber" },
+  success: { ring: "border-good/30", icon: "bg-good/15 text-good" },
+  error: { ring: "border-bad/30", icon: "bg-bad/15 text-bad" },
+  info: { ring: "border-edge", icon: "bg-volt/15 text-volt" },
 };
 
 function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
@@ -84,23 +84,23 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     <div
       // Errors interrupt; successes wait their turn.
       role={toast.tone === "error" ? "alert" : "status"}
-      className={`card pointer-events-auto flex w-full max-w-sm items-start gap-3 p-4 transition-all duration-200 ease-out ${tone.ring} ${
+      className={`panel pointer-events-auto flex w-full max-w-sm items-start gap-3 p-4 transition-all duration-200 ease-out ${tone.ring} ${
         entered && !leaving ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
       }`}
-      style={{ boxShadow: "var(--shadow-lift)" }}
+      style={{ boxShadow: "var(--shadow-4)" }}
     >
       <span aria-hidden="true" className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${tone.icon}`}>
         {toast.tone === "success" ? <CheckIcon className="h-3.5 w-3.5" /> : <span className="text-xs font-bold">!</span>}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-cream">{toast.title}</p>
-        {toast.description && <p className="mt-0.5 text-[13px] leading-relaxed text-mist">{toast.description}</p>}
+        <p className="text-sm font-medium text-ink">{toast.title}</p>
+        {toast.description && <p className="mt-0.5 text-[13px] leading-relaxed text-ink-muted">{toast.description}</p>}
       </div>
       <button
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss notification"
-        className="focus-ring -m-1 shrink-0 rounded p-1 text-dusk transition hover:text-cream"
+        className="focus-ring -m-1 shrink-0 rounded p-1 text-ink-faint transition hover:text-ink"
       >
         <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
           <path d="M5.5 5.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />

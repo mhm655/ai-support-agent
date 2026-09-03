@@ -35,33 +35,33 @@ export default function DemoPage() {
           <BrandLink />
           <Link
             href="/"
-            className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-dusk transition hover:text-cream"
+            className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-ink-faint transition hover:text-ink"
           >
             <ArrowLeftIcon className="h-4 w-4" />
             Back
           </Link>
         </div>
 
-        <p className="eyebrow mt-14">Live demo</p>
+        <p className="label-mono mt-14">Live demo</p>
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.06] tracking-[-0.03em] sm:text-5xl">
           <span>Ask it something</span>
           <br />
-          <span className="text-amber">it wasn&apos;t told to expect.</span>
+          <span className="text-volt">it wasn&apos;t told to expect.</span>
         </h1>
-        <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-mist">
+        <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-ink-muted">
           This is a real agent running the same pipeline every agent on this site uses, not a canned
           script. Try asking what insurance is accepted, or when they&apos;re open on a Saturday.
         </p>
 
         {DEMO_AGENT_ID ? (
-          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-sm text-mist">
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-edge bg-paper-raised px-4 py-2 text-sm text-ink-muted">
             <span aria-hidden="true" className="text-lg leading-none">
               ↘
             </span>
             Open the chat bubble in the bottom-right corner
           </p>
         ) : (
-          <p className="mt-6 rounded-2xl border border-amber/30 bg-amber/[0.07] px-4 py-3.5 text-sm leading-relaxed text-amber">
+          <p className="mt-6 rounded-2xl border border-volt/30 bg-volt/[0.07] px-4 py-3.5 text-sm leading-relaxed text-volt">
             Demo agent not configured. Set{" "}
             <code className="font-mono">NEXT_PUBLIC_DEMO_AGENT_ID</code> in the environment to enable
             this page.
@@ -70,21 +70,21 @@ export default function DemoPage() {
 
         <ol className="mt-14 flex flex-col gap-3">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="card flex items-start gap-4 p-5">
+            <li key={step.title} className="panel flex items-start gap-4 p-5">
               <span
                 aria-hidden="true"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-well text-amber"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
               >
                 <step.icon className="h-4.5 w-4.5" />
               </span>
               <div>
-                <h2 className="font-display text-[15px] font-bold tracking-tight text-cream">
-                  <span className="mr-2 font-mono text-[11px] font-normal text-dusk">
+                <h2 className="font-display text-[15px] font-bold tracking-tight text-ink">
+                  <span className="mr-2 font-mono text-[11px] font-normal text-ink-faint">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   {step.title}
                 </h2>
-                <p className="mt-1.5 text-[14.5px] leading-relaxed text-mist">{step.body}</p>
+                <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-muted">{step.body}</p>
               </div>
             </li>
           ))}
