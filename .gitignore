@@ -6,3 +6,9 @@
 .claude/
 CLAUDE.md
 frontend/CLAUDE.md
+
+# Vercel CLI link, and the OIDC token it writes into a local .env.local.
+# Deliberately not a bare `.env*`: that pattern would also ignore the
+# tracked .env.example files, which are meant to be in the repo.
+.vercel
+.env*.local
