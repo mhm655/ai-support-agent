@@ -29,6 +29,22 @@ export async function streamChat(
     }),
   });
 
+  // A rate limit is an expected, recoverable outcome rather than a broken
+  // request, so it goes down the same readable path as a backend `error`
+  // event instead of throwing. Throwing here surfaced as the raw
+  // "Chat request failed (429)" in the chat bubble.
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    const detail = await res
+      .json()
+      .then((body) => body?.detail as string | undefined)
+      .catch(() => undefined);
+    const wait = retryAfter ? ` Try again in ${retryAfter}s.` : "";
+    handlers.onError?.((detail || "Too many messages. Please slow down.") + wait);
+    handlers.onDone?.();
+    return;
+  }
+
   if (!res.ok || !res.body) {
     throw new Error(`Chat request failed (${res.status})`);
   }

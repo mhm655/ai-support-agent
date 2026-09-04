@@ -493,6 +493,23 @@
         }),
       });
 
+      // Rate limited. Without this the JSON error body gets fed to the SSE
+      // parser, which finds no events and falls through to the generic
+      // "no response came back" message, hiding the real reason.
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After");
+        let detail = "Too many messages. Please slow down.";
+        try {
+          const body = await res.json();
+          if (body && body.detail) detail = body.detail;
+        } catch {
+          /* no JSON body, keep the default message */
+        }
+        showRetry(assistantEl, detail + (retryAfter ? " Try again in " + retryAfter + "s." : ""));
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return;
+      }
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
