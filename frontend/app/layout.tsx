@@ -5,15 +5,18 @@ import { ToastProvider } from "@/components/Toast";
 import { MotionProvider } from "@/components/marketing/Motion";
 
 /*
- * Archivo carries the display voice: a grotesque that holds up at 700 and
- * above with tight negative tracking, which is where the page gets its
- * character. Instrument Sans reads cleanly at body sizes without the
- * ubiquity of Inter, and JetBrains Mono handles technical labels and code.
- * Three faces, one job each.
+ * Archivo carries the display voice. It loads 300 as well as the heavy
+ * weights: the largest headlines are set light, which is the opposite of
+ * the 700-weight hero every SaaS landing page ships. Authority through
+ * restraint, the way Stripe and ElevenLabs set their display type. The
+ * heavy weights stay for small headings, where light would go weedy.
+ *
+ * Instrument Sans reads cleanly at body sizes without the ubiquity of
+ * Inter, and JetBrains Mono handles technical labels and code.
  */
 const display = Archivo({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["300", "400", "600", "700", "800"],
   variable: "--font-display",
 });
 const body = Instrument_Sans({

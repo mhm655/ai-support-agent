@@ -82,7 +82,7 @@ export default function TiltPanel({
         <motion.span
           aria-hidden="true"
           style={{ backgroundImage: glare }}
-          className="pointer-events-none absolute inset-0 rounded-[14px]"
+          className="pointer-events-none absolute inset-0 rounded-[20px]"
         />
       </motion.div>
     </div>

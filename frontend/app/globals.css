@@ -18,10 +18,10 @@
  */
 :root {
   /* Paper, receding to advancing */
-  --color-paper-sunk: #e4e1d9;
-  --color-paper: #eceae4;
-  --color-paper-raised: #f5f3ef;
-  --color-paper-high: #fbfaf8;
+  --color-paper-sunk: #f0ede6;
+  --color-paper: #faf8f4;
+  --color-paper-raised: #fefdfb;
+  --color-paper-high: #ffffff;
 
   /* Ink */
   --color-ink: #17160f;
@@ -29,8 +29,8 @@
   --color-ink-faint: #8d8a7e;
 
   /* Edges. Present but secondary: depth comes from shadow, not outline. */
-  --color-edge: #ded9cf;
-  --color-edge-strong: #c6c0b2;
+  --color-edge: #e7e2d7;
+  --color-edge-strong: #d2ccbd;
 
   /* Accent */
   --color-volt: #2f43f5;
@@ -72,9 +72,14 @@
     0 3px 6px rgb(23 22 15 / 0.08),
     0 36px 80px -24px rgb(23 22 15 / 0.3);
 
-  /* One radius scale: panels 14, controls 10, buttons pill. */
-  --radius-panel: 14px;
-  --radius-control: 10px;
+  /*
+   * One radius scale: panels 20, controls 6, buttons pill. The two ends are
+   * deliberately far apart. A card at 20 reads as a soft object and an input
+   * at 6 reads as a precise one; landing both in the middle at 12-14 is the
+   * safe choice that makes a system look like every other system.
+   */
+  --radius-panel: 20px;
+  --radius-control: 6px;
 }
 
 @theme inline {
@@ -107,9 +112,17 @@
   --font-mono: var(--font-mono);
 }
 
+/*
+ * Body copy tracks slightly open while display type tracks tight. Pushing
+ * the two in opposite directions is deliberate: it widens the gap between
+ * voices, and the extra hundredth of an em buys real legibility at the
+ * 13-15px sizes that carry most of the interface. The .display classes and
+ * .label-mono set their own letter-spacing, so they override this.
+ */
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+  letter-spacing: 0.01em;
 }
 
 ::selection {
@@ -127,6 +140,24 @@ body {
     font-weight: 700;
     letter-spacing: -0.033em;
     line-height: 1;
+  }
+
+  /*
+   * The two largest headlines are set light instead of heavy. Both systems
+   * this was audited against set display type at weight 300 above 48px and
+   * name it as their signature: a 700-weight hero is the convention, so
+   * doing the opposite is what stops the page reading as generic.
+   *
+   * Only for 48px and up. Light type below that goes weedy and starts to
+   * lose against the body copy, which is why .display keeps the weight.
+   * Light needs more negative tracking than bold to hold together, hence
+   * -0.045em rather than -0.033em.
+   */
+  .display-xl {
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: -0.045em;
+    line-height: 0.97;
   }
 
   .label-mono {
@@ -191,16 +222,16 @@ body {
 
   /* Panels ----------------------------------------------------------- */
   .panel {
-    @apply rounded-[14px] border border-edge bg-paper-raised;
-    box-shadow: var(--shadow-2);
+    @apply rounded-[20px] border border-edge bg-paper-raised;
+    box-shadow: var(--shadow-1);
   }
   .panel-high {
-    @apply rounded-[14px] border border-edge bg-paper-high;
+    @apply rounded-[20px] border border-edge bg-paper-high;
     box-shadow: var(--shadow-3);
   }
   .panel-dark {
-    @apply rounded-[14px] border border-edge-dark bg-slab;
-    box-shadow: var(--shadow-4);
+    @apply rounded-[20px] border border-edge-dark bg-slab;
+    box-shadow: var(--shadow-3);
   }
 
   /*
@@ -209,7 +240,7 @@ body {
    * are what make an edge catch the light.
    */
   .glass {
-    @apply rounded-[14px];
+    @apply rounded-[20px];
     background: linear-gradient(
       160deg,
       rgb(255 255 255 / 0.16),
@@ -247,7 +278,7 @@ body {
     @apply text-[13px] leading-relaxed text-ink-faint;
   }
   .field {
-    @apply w-full rounded-[10px] border border-edge-strong bg-paper-high px-3.5 py-2.5
+    @apply w-full rounded-[6px] border border-edge-strong bg-paper-high px-3.5 py-2.5
            text-[15px] text-ink transition duration-150 outline-none
            placeholder:text-ink-faint
            hover:border-ink-faint
@@ -258,7 +289,7 @@ body {
     @apply cursor-not-allowed text-ink-faint opacity-70;
   }
   .field-dark {
-    @apply w-full rounded-[10px] border border-edge-dark bg-slab-raised px-3.5 py-2.5
+    @apply w-full rounded-[6px] border border-edge-dark bg-slab-raised px-3.5 py-2.5
            text-[15px] text-bone transition duration-150 outline-none
            placeholder:text-bone-faint
            hover:border-bone-faint
@@ -266,7 +297,7 @@ body {
     box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.3);
   }
   .field-glass {
-    @apply w-full rounded-[10px] px-3.5 py-2.5 text-[15px] text-white transition
+    @apply w-full rounded-[6px] px-3.5 py-2.5 text-[15px] text-white transition
            duration-150 outline-none placeholder:text-white/50;
     background: rgb(255 255 255 / 0.1);
     border: 1px solid rgb(255 255 255 / 0.18);

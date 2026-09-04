@@ -145,7 +145,7 @@ export default function LandingPage() {
             <div className="hero-in">
               {/* The whole voice of the page is in this block: heavy Archivo,
                   near-zero leading, tight negative tracking. */}
-              <h1 className="display text-[3rem] sm:text-[4.25rem] lg:text-[5.25rem]">
+              <h1 className="display-xl text-[3rem] sm:text-[4.25rem] lg:text-[5.25rem]">
                 Someone&apos;s always
                 <br />
                 at the desk.
@@ -429,7 +429,7 @@ export default function LandingPage() {
       <section className="bg-slab text-bone">
         <div className="mx-auto max-w-[52rem] px-5 py-32 text-center sm:px-8">
           <Reveal>
-            <h2 className="display text-[2.5rem] sm:text-[3.75rem]">
+            <h2 className="display-xl text-[2.5rem] sm:text-[3.75rem]">
               Stop answering the same five questions.
             </h2>
             <p className="mx-auto mt-7 max-w-md text-[16px] leading-relaxed text-bone-muted">
