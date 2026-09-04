@@ -7,9 +7,25 @@ was applied by hand via the Supabase dashboard SQL editor, so this migration
 is a retroactive snapshot, not something the running production project was
 deployed from.
 
+Because it is a reconstruction rather than an export, it drifted from
+production and was reconciled on 2026-09-04. The reconstruction had invented
+a `document_chunks.agent_id` column that production does not have and that
+`rag_pipeline.process_document` never writes, so a fresh project provisioned
+from the old file would have failed every document upload on a not-null
+violation. **The direction of reconciliation was "the file follows
+production":** nothing was changed in the live database. The migration's
+own header records what was verified against production and what was not —
+notably the index list and the RLS/grant state could not be checked, since
+PostgREST does not expose them.
+
 RLS is enabled on every table but no policies are defined (see the comment
 at the top of the migration for why — the FastAPI backend is the real
 authorization boundary here, not Postgres policies).
+
+Adding a table later means re-running the `GRANT ALL ... TO service_role`
+statements at the bottom of the migration. Without them, every backend query
+against the new table fails with `permission denied for table X`, even
+though `service_role` is supposed to bypass RLS entirely.
 
 ## Applying to a fresh Supabase project
 
