@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 
@@ -53,6 +55,21 @@ async def public_chat(
     agent_id: str, payload: ChatRequest, request: Request
 ) -> StreamingResponse:
     _enforce_rate_limits(agent_id, request)
+
+    # agent_id is interpolated into a query against a uuid column, and
+    # Postgres rejects a malformed value with a driver-level error rather
+    # than returning no rows -- so without this, any visitor requesting
+    # /public/agents/foo/chat got a 500 off an unauthenticated route.
+    #
+    # Answered as 404 rather than 422 so the response is indistinguishable
+    # from a well-formed id that simply does not exist, which avoids
+    # confirming which ids are real to anyone probing.
+    try:
+        uuid.UUID(agent_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+        ) from None
 
     supabase = get_supabase()
     result = supabase.table("agents").select("*").eq("id", agent_id).limit(1).execute()

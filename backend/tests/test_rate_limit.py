@@ -185,3 +185,28 @@ def test_agent_limit_catches_a_distributed_flood(reset_limiters):
 
     assert excinfo.value.status_code == 429
     assert "for this agent" in excinfo.value.detail
+
+
+# --- malformed agent id ----------------------------------------------------
+
+
+def test_malformed_agent_id_is_404_not_500(reset_limiters):
+    """
+    agent_id lands in a query against a uuid column. Postgres raises rather
+    than returning no rows for a malformed value, so before this was
+    handled any anonymous visitor could produce a 500 on the public route
+    just by requesting /public/agents/foo/chat.
+    """
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    with patch("app.api.routers.public_chat.get_supabase") as supabase:
+        response = TestClient(app).post(
+            "/public/agents/not-a-uuid/chat",
+            json={"message": "hi", "visitor_id": "v"},
+        )
+
+    assert response.status_code == 404
+    # Rejected on shape alone; the database is never consulted.
+    supabase.assert_not_called()
