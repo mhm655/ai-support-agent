@@ -7,7 +7,15 @@ import StatusDot from "@/components/StatusDot";
 import { AlertIcon, SendIcon } from "@/lib/icons";
 import type { ChatMessage, Document } from "./types";
 
-const SUGGESTIONS = ["What are your hours?", "Do you take Cigna?", "How much does a cleaning cost?"];
+/*
+ * Deliberately business-agnostic, and the same three the widget offers.
+ * These used to be dental ("Do you take Cigna?", "How much does a cleaning
+ * cost?"), which every agent got regardless of what it was for: a property
+ * agent's own preview suggested asking about dental insurance, and clicking
+ * one produced an honest "I don't have that information" that read as the
+ * product being broken.
+ */
+const SUGGESTIONS = ["What are your hours?", "Where are you located?", "How much does it cost?"];
 
 // Talks to the SAME public endpoint the embeddable widget uses — this is
 // the fastest way to test an agent works, using the real code path.
@@ -205,7 +213,7 @@ function TypingDots() {
       {[0, 150, 300].map((delay) => (
         <span
           key={delay}
-          className="h-1.5 w-1.5 animate-bounce rounded-full bg-dusk"
+          className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-faint"
           style={{ animationDelay: `${delay}ms` }}
         />
       ))}
