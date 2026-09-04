@@ -18,6 +18,98 @@ CHAT_MODEL = "gemini-3.5-flash-lite"  # gemini-3.5-flash's free tier on this pro
 # flash-lite is the tier Google positions for free/high-volume use, so it's the
 # safer bet for a workable daily quota — confirmed working live against this key.
 
+# Tried in order when the primary is unavailable.
+#
+# What this protects against: one model being degraded while others are
+# healthy. That is not hypothetical — on 2026-09-04 flash-lite returned 503
+# continuously for over 45 minutes while flash answered normally, which took
+# chat down completely for that window.
+#
+# What it does NOT protect against: a provider-wide outage. Later the same
+# day every model in this chain returned 503/504 together. Surviving that
+# needs a second provider, not a second Gemini model.
+#
+# Order matters. flash is placed first because it is the most capable, but
+# note its free tier caps at 20 requests/day on this project, so it is a
+# genuine degradation rather than a like-for-like substitute: it will
+# itself start returning 429 after roughly ten chat messages.
+FALLBACK_CHAT_MODELS = ("gemini-3.5-flash", "gemini-flash-latest")
+CHAT_MODEL_CHAIN = (CHAT_MODEL, *FALLBACK_CHAT_MODELS)
+
+
+def _is_transient(exc: Exception) -> bool:
+    """
+    Whether trying a different model could plausibly succeed.
+
+    5xx means the model is overloaded or timed out, and a different model
+    may well be fine. 429 means this model's quota is exhausted, and a
+    different model has its own quota. Everything else (a bad request, a
+    404 for a deprecated model name, an auth failure) will fail identically
+    on every model, so falling through the whole chain would just multiply
+    the latency of an error the user is going to get anyway.
+    """
+    if isinstance(exc, genai_errors.ClientError):
+        return exc.code == 429
+    if isinstance(exc, genai_errors.ServerError):
+        return True
+    return False
+
+
+def _generate_with_fallback(client, contents, config):
+    """Non-streaming generate, walking the model chain on transient errors."""
+    last_exc: Exception | None = None
+    for model in CHAT_MODEL_CHAIN:
+        try:
+            return client.models.generate_content(
+                model=model, contents=contents, config=config
+            )
+        except Exception as exc:
+            if not _is_transient(exc):
+                raise
+            last_exc = exc
+            logger.warning(
+                "Chat model %s unavailable (%s), trying next in chain",
+                model,
+                type(exc).__name__,
+            )
+    assert last_exc is not None
+    raise last_exc
+
+
+def _stream_with_fallback(client, contents, config):
+    """
+    Streaming generate, yielding text deltas and walking the model chain.
+
+    Falls back only while nothing has been emitted yet. Once a token has
+    reached the visitor, switching models would splice two different
+    replies together mid-sentence, so a failure after that point is raised
+    and handled as a normal stream error instead.
+    """
+    last_exc: Exception | None = None
+    for model in CHAT_MODEL_CHAIN:
+        emitted = False
+        try:
+            stream = client.models.generate_content_stream(
+                model=model, contents=contents, config=config
+            )
+            for chunk in stream:
+                delta = chunk.text
+                if delta:
+                    emitted = True
+                    yield delta
+            return
+        except Exception as exc:
+            if emitted or not _is_transient(exc):
+                raise
+            last_exc = exc
+            logger.warning(
+                "Chat model %s unavailable mid-stream-start (%s), trying next",
+                model,
+                type(exc).__name__,
+            )
+    assert last_exc is not None
+    raise last_exc
+
 CAPTURE_LEAD_TOOL = types.Tool(
     function_declarations=[
         types.FunctionDeclaration(
@@ -173,10 +265,10 @@ def stream_chat_response(
         client = get_genai_client()
 
         # Pass 1: decide on tool use (non-streaming, cheap)
-        decision = client.models.generate_content(
-            model=CHAT_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
+        decision = _generate_with_fallback(
+            client,
+            contents,
+            types.GenerateContentConfig(
                 system_instruction=system_prompt,
                 tools=[CAPTURE_LEAD_TOOL],
             ),
@@ -190,16 +282,13 @@ def stream_chat_response(
 
         # Pass 2: stream the actual reply
         full_reply = ""
-        stream = client.models.generate_content_stream(
-            model=CHAT_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(system_instruction=system_prompt),
-        )
-        for chunk in stream:
-            delta = chunk.text
-            if delta:
-                full_reply += delta
-                yield f"event: token\ndata: {json.dumps({'text': delta})}\n\n"
+        for delta in _stream_with_fallback(
+            client,
+            contents,
+            types.GenerateContentConfig(system_instruction=system_prompt),
+        ):
+            full_reply += delta
+            yield f"event: token\ndata: {json.dumps({'text': delta})}\n\n"
 
         _save_message(conversation_id, "assistant", full_reply)
     except genai_errors.ClientError as e:
@@ -211,6 +300,15 @@ def stream_chat_response(
             else "Something went wrong generating a reply. Please try again."
         )
         yield f"event: error\ndata: {json.dumps({'message': message})}\n\n"
+        yield "event: done\ndata: {}\n\n"
+        return
+    except genai_errors.ServerError as e:
+        # Every model in CHAT_MODEL_CHAIN returned 5xx. That is a provider
+        # outage, not a fault in this request, so say so: "something went
+        # wrong" reads as a bug and invites the visitor to retry
+        # immediately, which will fail the same way.
+        logger.warning("All chat models unavailable (provider 5xx): %s", e)
+        yield f"event: error\ndata: {json.dumps({'message': 'The AI service is temporarily unavailable. Please try again in a few minutes.'})}\n\n"
         yield "event: done\ndata: {}\n\n"
         return
     except genai_errors.APIError as e:
