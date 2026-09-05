@@ -468,10 +468,93 @@ production.
 
 ## Chat latency
 
-**Not measured. Blocked by a provider outage.**
+Measured 2026-09-05, 25 sequential requests per target, each on a fresh
+conversation.
 
-All 25 attempted requests failed. The cause was not quota and not this
-application:
+| stage | local p50 | local p95 | Railway p50 | Railway p95 |
+| --- | --- | --- | --- | --- |
+| `connect` (to `conversation` event) | 840 ms | 3080 ms | 1499 ms | 2109 ms |
+| **TTFT** (to first token) | **3602 ms** | **6138 ms** | **3791 ms** | **5034 ms** |
+| `total` (to `done`) | 3989 ms | 6405 ms | 4143 ms | 5918 ms |
+
+25/25 succeeded on both. Local is `127.0.0.1:8000`; Railway is the live
+deployment.
+
+### The two are much closer than expected
+
+The prediction going in was that Railway would be markedly faster, because
+the development machine's Supabase round trip measures ~581 ms and
+`stream_chat_response` makes five of them per message, while Railway sits
+in a datacenter. Median TTFT differs by **189 ms**, about 5%.
+
+The reason the totals barely move is that neither is dominated by the
+database. Subtracting `connect` from TTFT isolates the middle of the
+request — retrieval (query embedding plus the pgvector RPC), the history
+load, and the entire non-streaming tool-decision call:
+
+| segment | local | Railway |
+| --- | --- | --- |
+| pre-`conversation` (2 Supabase writes) | 840 ms | 1499 ms |
+| retrieval + history + decision pass | 2762 ms | 2292 ms |
+
+Railway *is* faster in the middle segment, by ~470 ms, which is close to
+one Supabase round trip and consistent with it being nearer the database.
+That gain is then handed back in `connect`, because the deployed
+measurement includes a client-to-Railway hop and TLS that the local one
+does not have at all.
+
+So the honest reading is: **the deployment is slightly closer to Supabase
+and slightly further from the client, and those roughly cancel. The
+dominant cost in both is the two Gemini calls, not hosting.**
+
+That also means the two-pass chat design is the main lever on perceived
+latency, not the database. The non-streaming tool-decision pass produces
+no output, so the visitor waits through all of it before the first token.
+`CLAUDE.md` estimates that pass at "an extra ~1s"; the measured middle
+segment of 2.3-2.8 s, which also contains retrieval and the history load,
+is consistent with that estimate but does not isolate it.
+
+### Caveats
+
+- **`connect` is not apples to apples.** Local has no network hop; Railway
+  includes one. The comparison of that row alone is meaningless.
+- **Reply length differed** between runs (150 chars over 2.9 SSE events
+  locally, 224 over 3.7 on Railway). Longer replies inflate `total`.
+  TTFT is unaffected, which is part of why it is the headline number.
+- **Requests were spaced 12 s apart**, so this is *unloaded* latency. It
+  says nothing about behaviour under concurrency; see LOADTEST.md.
+- **n=25**, so p95 is close to the second-worst sample. Treat it as
+  indicative.
+- **Railway is running the pre-rate-limit build.** That does not affect
+  these numbers (the limiter adds one dictionary operation to an allowed
+  request) but it means the deployed code is not the committed code.
+
+### Why the spacing was necessary
+
+A first attempt at 1 s spacing returned 4/25 successes. The failures split
+17 / 4:
+
+- 17 were **HTTP 429 from this project's own new rate limiter** (8/min per
+  IP). Working as designed, but it means a single-IP benchmark cannot
+  exceed 8 requests per minute against a default-configured instance.
+- 4 were **429 from Gemini**. Each chat message costs two model calls, so
+  8 messages a minute is 16 calls a minute, which the free tier declines.
+
+Both ceilings are properties of the environment rather than of the code
+under test, and both have to be respected to get a clean measurement.
+
+### Earlier attempt, and what it cost
+
+The first run of this benchmark, on 2026-09-04, produced a TTFT p50 of
+**53.5 s with 16 of 25 requests failing**, and was discarded rather than
+reported. `gemini-3.5-flash-lite` was in a multi-hour degraded state:
+
+| model | result during the outage |
+| --- | --- |
+| `gemini-embedding-2` | works |
+| `gemini-3.5-flash-lite` (the production chat model) | **503 UNAVAILABLE, 0/8 over a minute of probing** |
+| `gemini-3.5-flash` | works |
+| `gemini-flash-latest` | works |
 
 | model | result |
 | --- | --- |
@@ -490,12 +573,20 @@ SSE event rather than a hung stream or an unhandled 500 — which is exactly
 the behaviour the `error` event was added for, now confirmed against a real
 upstream outage rather than a simulated one.
 
-**Falling back to `gemini-3.5-flash` is not free.** It works right now, but
-its free tier on this project caps at 20 requests/day, and each chat
-message costs two calls — which is the constraint that drove the original
-move to flash-lite. A fallback chain would trade an outage for a ten-message
-daily ceiling.
+**Falling back to `gemini-3.5-flash` is not free.** It worked during the
+outage, but its free tier on this project caps at 20 requests/day, and each
+chat message costs two calls — the constraint that drove the original move
+to flash-lite. A fallback chain trades an outage for a ten-message daily
+ceiling. It was implemented anyway (see `CHAT_MODEL_CHAIN`), and later that
+day it was observed firing against the real outage: flash-lite returned
+`ServerError` on both passes, the chain fell through to flash, and the
+visitor got a normal reply.
 
-`evals/latency_chat.py` is written, and measures time-to-first-token,
-time-to-`conversation`, and total, reporting p50/p95. It is ready to run
-against both local and Railway the moment the model recovers.
+**A lesson about health checks.** The first recovery detector probed with
+`"Say OK"` and declared the model healthy while it was still badly
+degraded — tiny requests squeaked through while realistic ones carrying
+~1200 words of retrieved context took 40-67 s or timed out. It triggered
+the 53 s benchmark above. The probe now uses a realistically sized prompt
+and treats "responded, but slower than 8 s" as still down. **A health check
+that does not resemble the traffic it is gating does not predict anything
+about it.**

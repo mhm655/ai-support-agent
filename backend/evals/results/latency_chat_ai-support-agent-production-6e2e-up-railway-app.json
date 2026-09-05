@@ -1,0 +1,284 @@
+{
+  "summary": {
+    "label": "deployed (Railway)",
+    "n_requests": 25,
+    "n_ok": 25,
+    "n_failed": 0,
+    "errors": [],
+    "connect_ms": {
+      "min": 1022.6973000026192,
+      "p50": 1499.139899999136,
+      "p95": 2108.6991999982274,
+      "max": 2447.8315000014845,
+      "mean": 1515.8194960001856
+    },
+    "ttft_ms": {
+      "min": 3131.521800001792,
+      "p50": 3790.52010000305,
+      "p95": 5034.395900001982,
+      "max": 5508.8410999960615,
+      "mean": 4018.994732000283
+    },
+    "total_ms": {
+      "min": 3521.5420000022277,
+      "p50": 4142.68560000346,
+      "p95": 5918.272800001432,
+      "max": 5965.9625999993295,
+      "mean": 4418.400212000124
+    },
+    "mean_reply_chars": 223.96,
+    "mean_tokens": 3.68
+  },
+  "records": [
+    {
+      "message": "Are you open on Mondays at the Oak Park office?",
+      "connect_ms": 1988.3331000019098,
+      "ttft_ms": 4443.81379999686,
+      "total_ms": 5231.020100000023,
+      "tokens": 2,
+      "reply_chars": 47,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Which evening do you stay open late?",
+      "connect_ms": 1599.132199997257,
+      "ttft_ms": 4211.17840000079,
+      "total_ms": 4484.136899998703,
+      "tokens": 2,
+      "reply_chars": 61,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Can I come in on a Saturday?",
+      "connect_ms": 1522.6897000029567,
+      "ttft_ms": 5034.395900001982,
+      "total_ms": 5918.272800001432,
+      "tokens": 4,
+      "reply_chars": 220,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Are you closed over the Christmas holidays?",
+      "connect_ms": 1540.176499998779,
+      "ttft_ms": 3746.3716999991448,
+      "total_ms": 4106.168899998011,
+      "tokens": 3,
+      "reply_chars": 171,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Do I have to pay to park?",
+      "connect_ms": 1765.2078999963123,
+      "ttft_ms": 4254.235899999912,
+      "total_ms": 4758.389399998123,
+      "tokens": 6,
+      "reply_chars": 459,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "How much does a routine cleaning cost?",
+      "connect_ms": 2108.6991999982274,
+      "ttft_ms": 4467.681399997673,
+      "total_ms": 4751.6050999984145,
+      "tokens": 3,
+      "reply_chars": 102,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "What will my first visit cost if I want a cleaning too?",
+      "connect_ms": 1514.5563000041875,
+      "ttft_ms": 4040.527099998144,
+      "total_ms": 4451.168200001121,
+      "tokens": 5,
+      "reply_chars": 382,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "What does a root canal on a back tooth cost?",
+      "connect_ms": 1134.6180999971693,
+      "ttft_ms": 3421.5909999984433,
+      "total_ms": 3703.5882999989553,
+      "tokens": 3,
+      "reply_chars": 87,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "How much is a single dental implant all in?",
+      "connect_ms": 1406.532300003164,
+      "ttft_ms": 3738.312699999369,
+      "total_ms": 4039.358499998343,
+      "tokens": 3,
+      "reply_chars": 103,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Will my insurance pay for teeth whitening?",
+      "connect_ms": 1022.6973000026192,
+      "ttft_ms": 3855.560800002422,
+      "total_ms": 4142.68560000346,
+      "tokens": 3,
+      "reply_chars": 135,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Do you take Humana?",
+      "connect_ms": 1055.400199998985,
+      "ttft_ms": 3131.521800001792,
+      "total_ms": 3521.5420000022277,
+      "tokens": 4,
+      "reply_chars": 205,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "I have a Cigna DHMO plan, can I be seen?",
+      "connect_ms": 1186.2202000047546,
+      "ttft_ms": 3568.3266000050935,
+      "total_ms": 4084.171200003766,
+      "tokens": 4,
+      "reply_chars": 257,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Do you accept Medicaid?",
+      "connect_ms": 1224.1575000007288,
+      "ttft_ms": 3482.671700003266,
+      "total_ms": 3808.168299998215,
+      "tokens": 3,
+      "reply_chars": 171,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Can I spread the cost of a big treatment plan over several months?",
+      "connect_ms": 2447.8315000014845,
+      "ttft_ms": 5508.8410999960615,
+      "total_ms": 5965.9625999993295,
+      "tokens": 5,
+      "reply_chars": 404,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "How long until I get a refund if I was overcharged?",
+      "connect_ms": 2044.11170000094,
+      "ttft_ms": 4727.605800006131,
+      "total_ms": 5004.268600001524,
+      "tokens": 2,
+      "reply_chars": 117,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Do you charge me if I miss an appointment?",
+      "connect_ms": 1121.8875999984448,
+      "ttft_ms": 3532.9044999962207,
+      "total_ms": 3962.8605999969295,
+      "tokens": 5,
+      "reply_chars": 396,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Can my twelve year old come to an appointment on their own?",
+      "connect_ms": 1271.813100000145,
+      "ttft_ms": 3329.274300005636,
+      "total_ms": 3713.9700000043376,
+      "tokens": 4,
+      "reply_chars": 285,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "What happens if a filling you placed breaks?",
+      "connect_ms": 2035.8217999964836,
+      "ttft_ms": 4931.454899997334,
+      "total_ms": 5324.590199998056,
+      "tokens": 4,
+      "reply_chars": 327,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Is there a fee to send my records to a different dentist?",
+      "connect_ms": 2023.3173000015086,
+      "ttft_ms": 4917.5052999999025,
+      "total_ms": 5242.612000001827,
+      "tokens": 4,
+      "reply_chars": 320,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "How long do I have to wait before smoking after a tooth extraction?",
+      "connect_ms": 1119.1868999958388,
+      "ttft_ms": 3287.102900001628,
+      "total_ms": 3565.1479000007384,
+      "tokens": 2,
+      "reply_chars": 77,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Can I get a crown done in a single visit?",
+      "connect_ms": 2063.0595999973593,
+      "ttft_ms": 4722.469299995282,
+      "total_ms": 5075.127299998712,
+      "tokens": 4,
+      "reply_chars": 261,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Do you offer laughing gas and how much is it?",
+      "connect_ms": 1051.2042999980622,
+      "ttft_ms": 3216.227400000207,
+      "total_ms": 3564.221599997836,
+      "tokens": 3,
+      "reply_chars": 104,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "My child knocked out a tooth, how should I pick it up?",
+      "connect_ms": 1030.271100004029,
+      "ttft_ms": 3759.8396000030334,
+      "total_ms": 4324.2745000025025,
+      "tokens": 8,
+      "reply_chars": 567,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Does it cost extra to be seen in the middle of the night?",
+      "connect_ms": 1119.422100004158,
+      "ttft_ms": 3354.9342999976943,
+      "total_ms": 3645.362600000226,
+      "tokens": 3,
+      "reply_chars": 147,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "message": "Can I put an aspirin on a painful tooth?",
+      "connect_ms": 1499.139899999136,
+      "ttft_ms": 3790.52010000305,
+      "total_ms": 4071.3321000002907,
+      "tokens": 3,
+      "reply_chars": 194,
+      "error": null,
+      "http_status": 200
+    }
+  ]
+}
