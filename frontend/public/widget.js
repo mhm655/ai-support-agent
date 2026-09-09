@@ -30,7 +30,23 @@
   // localStorage, so returning visitors keep their conversation history.
   const VISITOR_KEY = "ai_widget_visitor_id";
   const CONVERSATION_KEY = `ai_widget_conversation_id_${agentId}`;
+  const CONVERSATION_SEEN_KEY = `ai_widget_conversation_seen_${agentId}`;
   const GREETED_KEY = `ai_widget_greeted_${agentId}`;
+
+  // How long a stored conversation stays usable after the last message.
+  //
+  // Sized to a visit, not to a day, and the reason is that this widget
+  // never restores the visible transcript -- on load the panel is empty and
+  // only the id comes back from storage. So what persistence actually buys
+  // is surviving navigation inside one visit: the visitor moves from one
+  // page to another, the widget reloads, and their thread continues.
+  //
+  // Past that it turns into a liability, because the model keeps context
+  // the visitor cannot see. Returning the next day to a blank panel and
+  // typing "hi" would get a reply that silently assumes everything said
+  // before, and on a shared browser that is someone else's conversation
+  // shaping the answer.
+  const CONVERSATION_TTL_MS = 60 * 60 * 1000;
 
   // Storage can throw outright, not merely come back empty: Safari's
   // private mode and any browser set to block site data raise on access
@@ -67,8 +83,41 @@
     return id;
   }
 
+  // Writing the id and its timestamp together, on every message, makes the
+  // window above idle-based rather than absolute: an active conversation
+  // keeps going, a finished one lapses.
+  function rememberConversation(id) {
+    writeStored(CONVERSATION_KEY, id);
+    writeStored(CONVERSATION_SEEN_KEY, String(Date.now()));
+  }
+
+  function loadConversation() {
+    const id = readStored(CONVERSATION_KEY);
+    if (!id) return null;
+
+    const seen = Number(readStored(CONVERSATION_SEEN_KEY));
+    // A missing or unparseable timestamp is treated as expired: it means
+    // the id was stored by a build that did not write one, and there is no
+    // way to tell how old it is.
+    if (!seen || Date.now() - seen > CONVERSATION_TTL_MS) {
+      forgetConversation();
+      return null;
+    }
+    return id;
+  }
+
+  function forgetConversation() {
+    try {
+      localStorage.removeItem(CONVERSATION_KEY);
+      localStorage.removeItem(CONVERSATION_SEEN_KEY);
+    } catch {
+      // Same hazard as readStored: nothing to do but carry on with a fresh
+      // conversation for this page.
+    }
+  }
+
   const visitorId = getOrCreateVisitorId();
-  let conversationId = readStored(CONVERSATION_KEY);
+  let conversationId = loadConversation();
   let streaming = false;
   let lastUserMessage = null;
 
@@ -585,7 +634,7 @@
 
           if (eventName === "conversation") {
             conversationId = data.conversation_id;
-            writeStored(CONVERSATION_KEY, conversationId);
+            rememberConversation(conversationId);
           } else if (eventName === "token") {
             appendToken(assistantEl, data.text);
           } else if (eventName === "error") {
