@@ -13,7 +13,7 @@ const STEPS = [
   {
     icon: DocumentIcon,
     title: "It only knows the sample docs",
-    body: "A fictional dental practice's hours, insurance list and price sheet. Nothing else was pre-written.",
+    body: "Two documents from NOVA, a fictional property firm: how the company works, and its current listings. Nothing else was pre-written.",
   },
   {
     icon: SparkIcon,
@@ -50,7 +50,8 @@ export default function DemoPage() {
         </h1>
         <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-ink-muted">
           This is a real agent running the same pipeline every agent on this site uses, not a canned
-          script. Try asking what insurance is accepted, or when they&apos;re open on a Saturday.
+          script. Try asking what&apos;s available in Boston under $4 million, or how to schedule a
+          viewing.
         </p>
 
         {DEMO_AGENT_ID ? (
