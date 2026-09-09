@@ -6,6 +6,7 @@ import httpx
 from google.genai import errors as genai_errors
 from google.genai import types
 
+from app.core.config import settings
 from app.core.supabase_client import get_supabase
 from app.services.embeddings import get_genai_client
 from app.services.retrieval import retrieve_relevant_chunks
@@ -194,15 +195,31 @@ def _get_or_create_conversation(agent_id: str, conversation_id: str | None, visi
 
 
 def _load_history(conversation_id: str) -> list[dict]:
+    """
+    The most recent settings.chat_history_messages messages, oldest first.
+
+    Fetched newest-first with a limit and then reversed, because the bound
+    has to be applied by the database: ordering ascending and slicing in
+    Python would still transfer every message in the conversation, which is
+    the cost this exists to avoid.
+
+    The floor of 1 matters. This window includes the message just saved, so
+    a limit of 0 would send the model no user turn at all and fail the
+    request rather than merely forgetting context.
+    """
+    limit = max(1, settings.chat_history_messages)
     supabase = get_supabase()
     result = (
         supabase.table("messages")
         .select("role, content")
         .eq("conversation_id", conversation_id)
-        .order("created_at")
+        .order("created_at", desc=True)
+        .limit(limit)
         .execute()
     )
-    return [{"role": m["role"], "content": m["content"]} for m in result.data]
+    return [
+        {"role": m["role"], "content": m["content"]} for m in reversed(result.data)
+    ]
 
 
 def _save_message(conversation_id: str, role: str, content: str) -> None:
