@@ -172,6 +172,16 @@ def _build_system_prompt(agent: dict) -> str:
 
 
 def _get_or_create_conversation(agent_id: str, conversation_id: str | None, visitor_id: str | None) -> str:
+    """
+    Reuses the caller's conversation, or opens a new one.
+
+    PRECONDITION: a non-empty conversation_id has already been verified to
+    be a well-formed uuid *and* to belong to agent_id. The route does that
+    (see _require_uuid and the ownership check in api/routers/public_chat.py)
+    because it can still answer 404 there, before StreamingResponse has sent
+    any headers. Reusing an unverified id here would load another tenant's
+    history into this prompt and append messages to their conversation.
+    """
     supabase = get_supabase()
     if conversation_id:
         return conversation_id
@@ -240,21 +250,26 @@ def stream_chat_response(
     stream starts) is simpler and more reliable than trying to stream
     while also handling a tool call mid-stream — worth it for an MVP.
     """
-    conversation_id = _get_or_create_conversation(agent["id"], conversation_id, visitor_id)
-    _save_message(conversation_id, "user", message)
-
-    # First, tell the frontend which conversation this is, so it can be
-    # reused on the next message (widget stores this client-side).
-    yield f"event: conversation\ndata: {json.dumps({'conversation_id': conversation_id})}\n\n"
-
-    # Retrieval, history, and both Gemini calls all talk to an external
-    # service (Supabase or Gemini) with a bounded timeout (see
-    # CLIENT_TIMEOUT_SECONDS in supabase_client.py) -- wrap the lot so a
-    # timeout or API error reaches the visitor as a readable message instead
-    # of crashing the SSE stream with an unhandled 500 (FastAPI can't turn
-    # that into a normal error response once streaming has already started,
-    # since the "conversation" event above already sent the response headers).
+    # EVERY external call in this function is inside the try below, opening
+    # the conversation and saving the visitor's message included. Once the
+    # first event is yielded the response headers are already gone, so
+    # FastAPI can no longer turn an exception into an error response -- an
+    # unhandled one just drops the socket, which the widget can render only
+    # as a dead connection. Anything escaping here is therefore both
+    # invisible to the visitor and near-undiagnosable, which is why the
+    # last handler below is a bare `except Exception` rather than a list of
+    # the failures that happened to be foreseen.
     try:
+        conversation_id = _get_or_create_conversation(agent["id"], conversation_id, visitor_id)
+
+        # Emitted as soon as the id exists and before anything else can
+        # fail: the widget stores it to continue the conversation on the
+        # next message, so an error reaching the visitor without it would
+        # make their retry open a second conversation and orphan this one.
+        yield f"event: conversation\ndata: {json.dumps({'conversation_id': conversation_id})}\n\n"
+
+        _save_message(conversation_id, "user", message)
+
         context_chunks = retrieve_relevant_chunks(message, agent["id"])
         context = "\n\n---\n\n".join(context_chunks) if context_chunks else "(no matching information found)"
 
@@ -293,13 +308,16 @@ def stream_chat_response(
         _save_message(conversation_id, "assistant", full_reply)
     except genai_errors.ClientError as e:
         logger.warning("Gemini client error during chat: %s", e)
-        message = (
+        # Named error_message, not message: `message` is the visitor's
+        # text, and rebinding it here was safe only because this handler
+        # returns immediately.
+        error_message = (
             "This agent is getting more questions than its current plan allows right now. "
             "Please try again in a minute."
             if e.code == 429
             else "Something went wrong generating a reply. Please try again."
         )
-        yield f"event: error\ndata: {json.dumps({'message': message})}\n\n"
+        yield f"event: error\ndata: {json.dumps({'message': error_message})}\n\n"
         yield "event: done\ndata: {}\n\n"
         return
     except genai_errors.ServerError as e:
@@ -323,6 +341,19 @@ def stream_chat_response(
         # here at all -- see CLIENT_TIMEOUT_SECONDS in supabase_client.py.
         logger.warning("Timed out waiting on an external call during chat: %s", e)
         yield f"event: error\ndata: {json.dumps({'message': 'This is taking longer than expected. Please try again.'})}\n\n"
+        yield "event: done\ndata: {}\n\n"
+        return
+    except Exception:
+        # Last resort, and deliberately broad. The handlers above cover
+        # Gemini and timeouts; this covers everything else Supabase can
+        # raise -- postgrest has its own APIError, unrelated to Gemini's
+        # same-named class, and Storage raises something different again.
+        # Enumerating them would leave the next unanticipated type
+        # dropping the socket silently, and there is no better behaviour
+        # available here: the visitor needs some reply and the operator
+        # needs the traceback, which logger.exception preserves.
+        logger.exception("Unhandled error during chat for agent_id=%s", agent.get("id"))
+        yield f"event: error\ndata: {json.dumps({'message': 'Something went wrong generating a reply. Please try again.'})}\n\n"
         yield "event: done\ndata: {}\n\n"
         return
 
