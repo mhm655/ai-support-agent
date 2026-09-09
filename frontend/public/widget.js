@@ -32,17 +32,43 @@
   const CONVERSATION_KEY = `ai_widget_conversation_id_${agentId}`;
   const GREETED_KEY = `ai_widget_greeted_${agentId}`;
 
+  // Storage can throw outright, not merely come back empty: Safari's
+  // private mode and any browser set to block site data raise on access
+  // rather than returning null. This script runs on sites we do not
+  // control, so that has to degrade instead of failing. It ran unguarded
+  // here while the nudge's sessionStorage calls below were carefully
+  // wrapped -- and unguarded here is far worse, because this executes
+  // before any UI is built, so a throw meant the entire widget silently
+  // never rendered.
+  function readStored(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  function writeStored(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Nothing persists: the visitor gets a fresh id and a fresh
+      // conversation on the next page load. Chat still works on this one,
+      // which is the part that matters.
+    }
+  }
+
   function getOrCreateVisitorId() {
-    let id = localStorage.getItem(VISITOR_KEY);
+    let id = readStored(VISITOR_KEY);
     if (!id) {
       id = "visitor-" + Math.random().toString(36).slice(2) + Date.now();
-      localStorage.setItem(VISITOR_KEY, id);
+      writeStored(VISITOR_KEY, id);
     }
     return id;
   }
 
   const visitorId = getOrCreateVisitorId();
-  let conversationId = localStorage.getItem(CONVERSATION_KEY);
+  let conversationId = readStored(CONVERSATION_KEY);
   let streaming = false;
   let lastUserMessage = null;
 
@@ -510,6 +536,31 @@
         return;
       }
 
+      // Every other non-2xx carries a JSON body rather than an event
+      // stream. Handing that to the SSE parser finds no events and falls
+      // through to the generic "no response came back", which hides a real
+      // and fixable cause. 404 is the one that matters: it is exactly what
+      // a mistyped or deleted data-agent-id looks like, and the visitor
+      // cannot fix that, so the detail goes to the console for whoever
+      // installed the script.
+      if (!res.ok || !res.body) {
+        if (res.status === 404) {
+          console.error(
+            "[AI widget] The API does not recognise data-agent-id=" +
+              agentId +
+              ". Check the value on the script tag."
+          );
+        }
+        showRetry(
+          assistantEl,
+          res.status === 404
+            ? "This chat isn't available right now."
+            : "Sorry, something went wrong."
+        );
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return;
+      }
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -534,7 +585,7 @@
 
           if (eventName === "conversation") {
             conversationId = data.conversation_id;
-            localStorage.setItem(CONVERSATION_KEY, conversationId);
+            writeStored(CONVERSATION_KEY, conversationId);
           } else if (eventName === "token") {
             appendToken(assistantEl, data.text);
           } else if (eventName === "error") {
