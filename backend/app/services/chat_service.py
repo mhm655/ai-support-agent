@@ -9,6 +9,7 @@ from google.genai import types
 from app.core.config import settings
 from app.core.supabase_client import get_supabase
 from app.services.embeddings import get_genai_client
+from app.services.lead_notifications import notify_lead_captured
 from app.services.retrieval import retrieve_relevant_chunks
 
 logger = logging.getLogger(__name__)
@@ -309,7 +310,11 @@ def stream_chat_response(
         for call in decision.function_calls or []:
             if call.name == "capture_lead":
                 args = call.args or {}
+                # Saved first, notified second, and in that order on purpose:
+                # the row is what the dashboard reads, so a failure to send
+                # costs a notification rather than a lead.
                 _capture_lead(agent["id"], conversation_id, args)
+                notify_lead_captured(agent, args)
                 yield f"event: lead_captured\ndata: {json.dumps(args)}\n\n"
 
         # Pass 2: stream the actual reply

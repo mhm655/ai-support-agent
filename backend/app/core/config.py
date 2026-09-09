@@ -38,6 +38,31 @@ class Settings(BaseSettings):
     # no user turn at all is an error.
     chat_history_messages: int = 20
 
+    # Lead notification email, over SMTP. See services/email.py.
+    #
+    # Entirely optional and off unless smtp_host and smtp_from are both
+    # set, so an environment that does not configure it behaves exactly as
+    # it did before this existed. Nothing in the chat path depends on it.
+    #
+    # SMTP rather than a provider SDK keeps this dependency-free and
+    # provider-agnostic: a Gmail app password works, and so does Resend or
+    # Postmark, by changing these values alone.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+
+    # Bounded because sending happens on a worker thread: an unreachable
+    # host would otherwise hang until the OS gives up, which can be
+    # minutes.
+    smtp_timeout_seconds: int = 10
+
+    # Used to link the owner straight to the agent that captured the lead.
+    # The link is simply omitted when this is unset, rather than pointing
+    # somewhere wrong like localhost.
+    dashboard_base_url: str | None = None
+
 
 # Loaded once, imported everywhere else
 settings = Settings()
