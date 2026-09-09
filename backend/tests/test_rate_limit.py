@@ -108,6 +108,20 @@ def test_client_ip_ignores_empty_forwarded_header():
 
 # --- route integration -----------------------------------------------------
 
+# A real uuid: the route validates agent_id's shape between the two limits,
+# so a placeholder like "agent-1" is no longer a value it would reach the
+# per-agent limiter with.
+AGENT = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+
+
+def _enforce_both(agent_id, request):
+    """Mirrors the route: per-IP, then id validation, then per-agent."""
+    from app.api.routers import public_chat
+
+    public_chat._enforce_ip_limit(request)
+    public_chat._require_uuid(agent_id, "Agent not found")
+    public_chat._enforce_agent_limit(agent_id)
+
 
 @pytest.fixture
 def reset_limiters():
@@ -127,10 +141,10 @@ def test_route_raises_429_with_retry_after(reset_limiters):
 
     limit = public_chat._ip_limiter.limit
     for _ in range(limit):
-        public_chat._enforce_rate_limits("agent-1", _request())
+        _enforce_both(AGENT, _request())
 
     with pytest.raises(HTTPException) as excinfo:
-        public_chat._enforce_rate_limits("agent-1", _request())
+        _enforce_both(AGENT, _request())
 
     assert excinfo.value.status_code == 429
     assert "Retry-After" in excinfo.value.headers
@@ -146,11 +160,11 @@ def test_limit_is_enforced_before_any_paid_work(reset_limiters):
     from app.api.routers import public_chat
 
     for _ in range(public_chat._ip_limiter.limit):
-        public_chat._enforce_rate_limits("agent-1", _request())
+        _enforce_both(AGENT, _request())
 
     with patch.object(public_chat, "get_supabase") as supabase:
         with pytest.raises(HTTPException):
-            public_chat._enforce_rate_limits("agent-1", _request())
+            _enforce_both(AGENT, _request())
         supabase.assert_not_called()
 
 
@@ -158,11 +172,11 @@ def test_different_visitors_are_limited_separately(reset_limiters):
     from app.api.routers import public_chat
 
     for _ in range(public_chat._ip_limiter.limit):
-        public_chat._enforce_rate_limits("agent-1", _request({"X-Forwarded-For": "1.1.1.1"}))
+        _enforce_both(AGENT, _request({"X-Forwarded-For": "1.1.1.1"}))
 
     # A second visitor on the same agent is unaffected, as long as the
     # per-agent ceiling is higher than the per-IP one.
-    public_chat._enforce_rate_limits("agent-1", _request({"X-Forwarded-For": "2.2.2.2"}))
+    _enforce_both(AGENT, _request({"X-Forwarded-For": "2.2.2.2"}))
 
 
 def test_agent_limit_catches_a_distributed_flood(reset_limiters):
@@ -179,9 +193,7 @@ def test_agent_limit_catches_a_distributed_flood(reset_limiters):
 
     with pytest.raises(HTTPException) as excinfo:
         for i in range(agent_limit + 5):
-            public_chat._enforce_rate_limits(
-                "agent-1", _request({"X-Forwarded-For": f"10.0.0.{i}"})
-            )
+            _enforce_both(AGENT, _request({"X-Forwarded-For": f"10.0.0.{i}"}))
 
     assert excinfo.value.status_code == 429
     assert "for this agent" in excinfo.value.detail

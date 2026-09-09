@@ -17,30 +17,33 @@ _ip_limiter = SlidingWindowLimiter(settings.public_chat_per_ip_per_minute, 60.0)
 _agent_limiter = SlidingWindowLimiter(settings.public_chat_per_agent_per_minute, 60.0)
 
 
-def _enforce_rate_limits(agent_id: str, request: Request) -> None:
+def _enforce_limit(limiter: SlidingWindowLimiter, key: str, scope: str) -> None:
     """
-    Raises 429 if this caller or this agent is over its per-minute limit.
+    Raises 429 if `key` is over `limiter`'s allowance for the window.
 
-    Checked before the agent lookup and before anything is streamed, so a
-    blocked request costs one dictionary operation rather than a Supabase
-    round trip and two Gemini calls. That ordering is the entire point:
-    a limiter that runs after the expensive work protects nothing.
+    Both limiters run before the agent lookup and before anything is
+    streamed, so a blocked request costs one dictionary operation rather
+    than a Supabase round trip and two Gemini calls. That ordering is the
+    entire point: a limiter that runs after the expensive work protects
+    nothing.
     """
-    checks = (
-        (_ip_limiter, client_ip(request), "from your network"),
-        (_agent_limiter, agent_id, "for this agent"),
-    )
+    if limiter.limit <= 0:  # 0 disables the limit
+        return
+    retry_after = limiter.check(key)
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many messages {scope}. Please wait a moment and try again.",
+            headers={"Retry-After": str(max(1, int(retry_after) + 1))},
+        )
 
-    for limiter, key, scope in checks:
-        if limiter.limit <= 0:  # 0 disables the limit
-            continue
-        retry_after = limiter.check(key)
-        if retry_after is not None:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Too many messages {scope}. Please wait a moment and try again.",
-                headers={"Retry-After": str(max(1, int(retry_after) + 1))},
-            )
+
+def _enforce_ip_limit(request: Request) -> None:
+    _enforce_limit(_ip_limiter, client_ip(request), "from your network")
+
+
+def _enforce_agent_limit(agent_id: str) -> None:
+    _enforce_limit(_agent_limiter, agent_id, "for this agent")
 
 
 def _not_found(detail: str) -> HTTPException:
@@ -83,9 +86,20 @@ def _require_uuid(value: str, detail: str) -> None:
 async def public_chat(
     agent_id: str, payload: ChatRequest, request: Request
 ) -> StreamingResponse:
-    _enforce_rate_limits(agent_id, request)
+    # Per-IP first. It is keyed on the address rather than on anything in
+    # the URL, so it applies to junk traffic too and needs nothing about
+    # the request to be valid first.
+    _enforce_ip_limit(request)
 
     _require_uuid(agent_id, "Agent not found")
+
+    # Per-agent only once agent_id is known to be a well-formed uuid.
+    # Keying a window on unvalidated input meant a scan of invented ids
+    # filled the limiter's key table with strings that could never name a
+    # real agent, competing for space with the keys that matter. Still
+    # ahead of every Supabase and Gemini call, which is what the limit is
+    # actually for.
+    _enforce_agent_limit(agent_id)
 
     supabase = get_supabase()
     result = supabase.table("agents").select("*").eq("id", agent_id).limit(1).execute()

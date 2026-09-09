@@ -25,3 +25,16 @@ def upload_document(agent_id: str, filename: str, content: bytes) -> str:
         file_options={"content-type": "application/octet-stream"},
     )
     return storage_path
+
+
+def delete_document(storage_path: str) -> None:
+    """
+    Removes a stored file, called when its document row is deleted.
+
+    Without this the bucket keeps every file ever uploaded, including for
+    documents the dashboard no longer shows. Those are invisible, count
+    against the storage quota forever, and mean a customer asking for
+    their data to be deleted does not actually get that.
+    """
+    supabase = get_supabase()
+    supabase.storage.from_(BUCKET).remove([storage_path])

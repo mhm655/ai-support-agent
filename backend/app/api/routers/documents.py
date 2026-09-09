@@ -1,14 +1,20 @@
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, status
 
 from app.core.security import CurrentBusinessIdDep
 from app.core.supabase_client import get_supabase
 from app.schemas.document import DocumentResponse
 from app.services.rag_pipeline import process_document
+from app.services.storage import delete_document as delete_stored_document
 from app.services.storage import upload_document
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["documents"])
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB — generous for text/PDF docs, keeps costs predictable
+UPLOAD_READ_CHUNK = 1024 * 1024
 
 
 def _assert_owns_agent(agent_id: str, business_id: str) -> None:
@@ -38,12 +44,26 @@ async def upload_agent_document(
 ) -> DocumentResponse:
     _assert_owns_agent(agent_id, business_id)
 
-    content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="File too large (max 10MB)",
-        )
+    # Read incrementally and stop at the limit, rather than pulling the
+    # whole upload into one bytes object and measuring it afterwards --
+    # that put a file of any size in memory before deciding to reject it.
+    #
+    # This bounds memory, not bandwidth or disk. Starlette parses the
+    # multipart body before this handler runs, spooling anything over ~1MB
+    # to a temp file, so the bytes have already been received by the time
+    # we get here. Refusing earlier than that would take middleware that
+    # inspects Content-Length before body parsing.
+    parts: list[bytes] = []
+    received = 0
+    while data := await file.read(UPLOAD_READ_CHUNK):
+        received += len(data)
+        if received > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File too large (max 10MB)",
+            )
+        parts.append(data)
+    content = b"".join(parts)
 
     storage_path = upload_document(agent_id, file.filename, content)
 
@@ -89,7 +109,13 @@ async def delete_document(document_id: str, business_id: CurrentBusinessIdDep) -
     supabase = get_supabase()
     # Ownership check via join: does this document belong to an agent
     # that belongs to this business?
-    doc = supabase.table("documents").select("agent_id").eq("id", document_id).limit(1).execute()
+    doc = (
+        supabase.table("documents")
+        .select("agent_id, storage_path")
+        .eq("id", document_id)
+        .limit(1)
+        .execute()
+    )
     if not doc.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     _assert_owns_agent(doc.data[0]["agent_id"], business_id)
@@ -99,3 +125,18 @@ async def delete_document(document_id: str, business_id: CurrentBusinessIdDep) -
     # do it explicitly to avoid orphaned embeddings.
     supabase.table("document_chunks").delete().eq("document_id", document_id).execute()
     supabase.table("documents").delete().eq("id", document_id).execute()
+
+    # The stored file goes last, and its failure does not fail the request.
+    # By this point the rows the dashboard reads are gone, so the delete the
+    # user asked for has happened. Doing storage first risks the opposite and
+    # worse outcome: a document still listed in the UI whose file no longer
+    # exists. An orphaned file is recoverable and is logged here with its
+    # path; a row pointing at nothing is not.
+    try:
+        delete_stored_document(doc.data[0]["storage_path"])
+    except Exception:
+        logger.warning(
+            "Deleted document %s but its stored file may remain at %s",
+            document_id,
+            doc.data[0]["storage_path"],
+        )
