@@ -30,9 +30,11 @@ uvicorn app.main:app --reload --port 8000
    business name — this creates the `businesses` row every other table
    hangs off of.
 3. Every subsequent request sends `Authorization: Bearer <supabase_jwt>`.
-   `app/core/security.py` verifies the token against `SUPABASE_JWT_SECRET`
-   and resolves it to a `business_id` via the `get_current_business_id`
-   dependency — routes use that to scope every query.
+   `app/core/security.py` verifies the token's signature against Supabase's
+   published JWKS endpoint (ES256 — no shared secret needed, and key
+   rotation needs no code change), then resolves it to a `business_id` via
+   the `get_current_business_id` dependency — routes use that to scope
+   every query.
 
 ## Structure
 

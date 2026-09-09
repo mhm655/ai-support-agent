@@ -6,15 +6,28 @@ from app.core.config import settings
 
 app = FastAPI(title="AI Support Agent API", version="0.1.0")
 
-# CORS note: this API uses Bearer-token auth (Authorization header), not
-# cookies — so allow_credentials doesn't need to be True, and we don't
-# need per-route CORS configs. The dashboard origin is restricted via
-# CORS_ORIGINS in .env; the /public/* chat endpoint additionally needs to
-# be reachable from arbitrary business websites (that's the whole point
-# of an embeddable widget), so it's allowed via "*" here too. Since no
-# credentials/cookies are involved, this is a reasonable MVP posture —
-# revisit before a real production launch if you add cookie-based auth
-# anywhere.
+# CORS is open to every origin, for every route. That is a real decision,
+# not an oversight, so it is worth stating plainly rather than implying a
+# restriction that is not here: there is ONE middleware and it allows "*".
+#
+# It is safe specifically because this API authenticates with a Bearer
+# token in the Authorization header and never with cookies. A browser
+# attaches cookies to cross-origin requests on its own, which is what
+# makes permissive CORS dangerous for cookie-based APIs; it will never
+# attach an Authorization header on its own. A malicious site would need
+# the token itself, which lives in the dashboard origin's localStorage and
+# is unreachable from another origin. So restricting origins here would
+# not block an attack that permissiveness allows.
+#
+# /public/* additionally *has* to be open: the embeddable widget runs on
+# arbitrary customer websites, and the whole product depends on that.
+#
+# Revisit this if cookie-based auth is ever introduced anywhere. At that
+# point allow_credentials would have to become True, and a wildcard origin
+# combined with credentials is exactly the dangerous combination above.
+# Note that Starlette's CORSMiddleware is global, so an actual per-route
+# split would mean two mounted apps or custom middleware -- more machinery
+# than the security benefit justifies today.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -4,9 +4,11 @@ Backend on Railway, frontend on Vercel. Both are configured to deploy straight
 from the `mhm655/ai-support-agent` GitHub repo, each service pointed at its
 own subdirectory (`backend/` or `frontend/`).
 
-Order matters: deploy the backend first so you have its public URL before
-configuring the frontend, then come back and update the backend's
-`CORS_ORIGINS` once you know the frontend's real URL.
+Order matters: deploy the backend first, so you have its public URL before
+configuring the frontend (the frontend needs it as `NEXT_PUBLIC_API_URL`).
+Nothing has to be wired back the other way — the backend allows every
+origin, deliberately, because it authenticates with a Bearer token rather
+than cookies. See the comment at the top of `backend/app/main.py`.
 
 ## 1. Backend → Railway
 
@@ -23,7 +25,6 @@ configuring the frontend, then come back and update the backend's
    | `SUPABASE_URL` | from Supabase dashboard → Project Settings → API |
    | `SUPABASE_SECRET_KEY` | Supabase dashboard → API Keys → **Legacy** `service_role` key (see note below) |
    | `GEMINI_API_KEY` | your Gemini API key |
-   | `CORS_ORIGINS` | `http://localhost:3000` for now — you'll update this in step 3 |
 
    > **Legacy key note**: this project's pinned `supabase-py` version only
    > validates the older `eyJ...`-style key format, not Supabase's newer
@@ -49,22 +50,14 @@ configuring the frontend, then come back and update the backend's
    | `NEXT_PUBLIC_API_URL` | the Railway URL from step 1 (e.g. `https://your-app.up.railway.app`) |
 5. Deploy. Copy the resulting `https://<your-app>.vercel.app` URL.
 
-## 3. Close the loop: update backend CORS
-
-Go back to Railway → your backend service → **Variables** → set
-`CORS_ORIGINS` to your real Vercel URL (e.g.
-`https://your-app.vercel.app`), then redeploy. This is what lets the
-dashboard (not the embeddable widget — that's intentionally open to `*`,
-see `main.py`) actually talk to the API from production.
-
-## 4. Supabase Auth: production URL
+## 3. Supabase Auth: production URL
 
 Supabase dashboard → **Authentication → URL Configuration**:
 - **Site URL** → your Vercel URL. This is what confirmation-email links
   point to; leaving it as `localhost` means signup confirmation emails
   send users to a dead link in production.
 
-## 5. Smoke test in production
+## 4. Smoke test in production
 
 1. Sign up a fresh account at your Vercel URL, create an agent, upload a
    document, confirm it reaches `status: done`.

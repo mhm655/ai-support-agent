@@ -6,13 +6,7 @@ class Settings(BaseSettings):
 
     supabase_url: str
     supabase_secret_key: str
-    # No longer required — JWKS-based verification (see core/security.py)
-    # fetches the public key over HTTP instead of needing the shared secret.
-    # Left optional rather than removed in case you ever need to fall back
-    # to legacy HS256 verification.
-    supabase_jwt_secret: str | None = None
     gemini_api_key: str
-    cors_origins: str = "http://localhost:3000"
 
     # Rate limits for the unauthenticated /public chat endpoint. See
     # core/rate_limit.py for why these exist and what they do not cover.
@@ -29,10 +23,6 @@ class Settings(BaseSettings):
     # Set either to 0 to disable that limit.
     public_chat_per_ip_per_minute: int = 8
     public_chat_per_agent_per_minute: int = 60
-
-    @property
-    def cors_origins_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 # Loaded once, imported everywhere else

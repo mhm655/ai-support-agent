@@ -14,7 +14,6 @@ import os
 os.environ.setdefault("SUPABASE_URL", "https://test-project.supabase.co")
 os.environ.setdefault("SUPABASE_SECRET_KEY", "sb_secret_test_dummy")
 os.environ.setdefault("GEMINI_API_KEY", "test-dummy-gemini-key")
-os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
 from unittest.mock import MagicMock  # noqa: E402
 
