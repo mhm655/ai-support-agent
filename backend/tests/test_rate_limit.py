@@ -14,7 +14,8 @@ from unittest.mock import patch
 import pytest
 from fastapi import Request
 
-from app.core.rate_limit import SlidingWindowLimiter, client_ip
+from app.core.config import settings
+from app.core.rate_limit import SlidingWindowLimiter, client_ip, guard_single_instance
 
 
 def _request(headers: dict[str, str] | None = None, host: str = "1.2.3.4") -> Request:
@@ -197,6 +198,20 @@ def test_agent_limit_catches_a_distributed_flood(reset_limiters):
 
     assert excinfo.value.status_code == 429
     assert "for this agent" in excinfo.value.detail
+
+
+# --- single-instance guard --------------------------------------------------
+
+
+def test_guard_allows_the_default_single_instance():
+    assert settings.expected_app_instances == 1
+    guard_single_instance()  # must not raise
+
+
+def test_guard_refuses_to_start_above_one_instance():
+    with patch.object(settings, "expected_app_instances", 2):
+        with pytest.raises(RuntimeError, match="per-process"):
+            guard_single_instance()
 
 
 # --- malformed agent id ----------------------------------------------------

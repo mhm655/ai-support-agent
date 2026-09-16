@@ -39,10 +39,48 @@ from collections import defaultdict, deque
 
 from fastapi import Request
 
+from app.core.config import settings
+
 # Stop the key dictionaries growing without bound if the endpoint is
 # scanned with many distinct agent ids or from many addresses. Eviction is
 # lazy and only touches keys whose window has fully expired.
 MAX_TRACKED_KEYS = 20_000
+
+
+def guard_single_instance() -> None:
+    """
+    Refuses to start if `settings.expected_app_instances` says this
+    deployment runs more than one process.
+
+    The limiters below are per-process, in-memory state. With N processes
+    (uvicorn `--workers`, or Railway replicas) each one enforces the
+    configured limit independently, so the *actual* ceiling is the
+    configured number times N -- silently, with no error and no log line,
+    just a business's Gemini quota draining faster than the numbers in
+    config.py say it should.
+
+    `expected_app_instances` cannot be read from the environment: a worker
+    process has no view of its siblings, and Railway's replica count is a
+    dashboard setting with no env var exposing it. So this can only catch
+    a deliberate, remembered change to that setting -- not an ops-side
+    scale-up that forgets to touch this file. It is a tripwire for the
+    change happening through this codebase, not a complete guarantee.
+
+    Raising here, rather than just logging, is deliberate: a warning that
+    scrolls by in deploy logs is exactly the kind of thing that gets
+    missed, and the cost of being wrong (quota silently draining N times
+    faster) is high enough to justify refusing to boot instead.
+    """
+    if settings.expected_app_instances > 1:
+        raise RuntimeError(
+            "expected_app_instances is set above 1, but the public chat "
+            "rate limiter (SlidingWindowLimiter) is per-process, in-memory "
+            "state -- each process would enforce the configured limits "
+            "independently, multiplying the effective ceiling by the "
+            "instance count. Move the limiter to a shared store (Redis, "
+            "or a counters table in Supabase Postgres) before running more "
+            "than one instance. See core/rate_limit.py."
+        )
 
 
 class SlidingWindowLimiter:

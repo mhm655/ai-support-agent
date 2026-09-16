@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers import agents, analytics, businesses, conversations, documents, leads, public_chat
 from app.core.config import settings
+from app.core.rate_limit import guard_single_instance
+
+# Refuses to start rather than silently under-enforcing the public chat
+# rate limits -- see rate_limit.guard_single_instance for why.
+guard_single_instance()
 
 app = FastAPI(title="AI Support Agent API", version="0.1.0")
 

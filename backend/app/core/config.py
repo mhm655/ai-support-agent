@@ -24,6 +24,15 @@ class Settings(BaseSettings):
     public_chat_per_ip_per_minute: int = 8
     public_chat_per_agent_per_minute: int = 60
 
+    # How many uvicorn worker processes / Railway replicas this deployment
+    # actually runs. Not auto-detected: a worker can't see its siblings
+    # from inside the process, and Railway's replica count is a dashboard
+    # setting the app has no API to read. This exists purely so a human
+    # has to change it, which is the point -- see rate_limit.py's
+    # guard_single_instance() for what happens if it's raised above 1
+    # without also moving the rate limiter to a shared store.
+    expected_app_instances: int = 1
+
     # How many past messages of a conversation are replayed to the model.
     #
     # Unbounded, this grew forever: the widget keeps one conversation id in
