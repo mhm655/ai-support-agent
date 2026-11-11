@@ -6,7 +6,6 @@ import EmptyState from "@/components/EmptyState";
 import Skeleton from "@/components/Skeleton";
 import SearchField from "@/components/SearchField";
 import { FormError } from "@/components/FormField";
-import { UserIcon } from "@/lib/icons";
 import type { Lead } from "./types";
 
 export default function LeadsTab({ agentId }: { agentId: string }) {
@@ -36,7 +35,7 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
     return (
       <div className="flex flex-col gap-2">
         {[0, 1].map((i) => (
-          <Skeleton key={i} className="h-[86px]" />
+          <Skeleton key={i} className="h-[92px]" />
         ))}
       </div>
     );
@@ -47,7 +46,6 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
   if (leads.length === 0) {
     return (
       <EmptyState
-        icon={<UserIcon className="h-5 w-5" />}
         title="No leads yet"
         description="They'll show up here the moment a chat produces a name, email, or phone number."
       />
@@ -71,68 +69,58 @@ export default function LeadsTab({ agentId }: { agentId: string }) {
       )}
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-edge bg-paper-raised/40 px-6 py-10 text-center text-sm text-ink-faint">
+        <p className="border-t border-edge py-10 text-[15px] text-ink-muted">
           No leads match &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {filtered.map((lead, i) => {
-            const contact = [lead.email, lead.phone].filter(Boolean).join(" · ");
-            return (
-              <li
-                key={lead.id}
-                className="panel enter flex items-start gap-4 p-4"
-                style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+        // One row per lead, divided rather than boxed: every lead is the same
+        // kind of thing, so none needs lifting above the others. What they
+        // asked for is set as plain text under their details, not inside a
+        // grey box, since it is the most useful thing on the row.
+        <ul className="divide-y divide-edge border-y border-edge">
+          {filtered.map((lead) => (
+            <li key={lead.id} className="flex items-start gap-6 px-1 py-5">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[17px] font-semibold text-ink">
+                  {lead.name || "No name given"}
+                </p>
+                {lead.email || lead.phone ? (
+                  <p className="mt-0.5 flex flex-wrap gap-x-4 text-[14px] text-ink-muted">
+                    {/* A captured email is the point of the product: make it
+                        one click to act on rather than something to select
+                        and copy by hand. */}
+                    {lead.email && (
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="focus-ring rounded underline decoration-edge-strong underline-offset-4 transition hover:text-volt hover:decoration-volt"
+                      >
+                        {lead.email}
+                      </a>
+                    )}
+                    {lead.phone && (
+                      <a
+                        href={`tel:${lead.phone}`}
+                        className="focus-ring rounded underline decoration-edge-strong underline-offset-4 transition hover:text-volt hover:decoration-volt"
+                      >
+                        {lead.phone}
+                      </a>
+                    )}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-[14px] text-ink-faint">No contact details given</p>
+                )}
+                {lead.interest && (
+                  <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-ink">{lead.interest}</p>
+                )}
+              </div>
+              <time
+                dateTime={lead.created_at}
+                className="shrink-0 pt-1 text-[13px] whitespace-nowrap text-ink-faint"
               >
-                <span
-                  aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-volt/25 bg-volt/10 font-display text-sm font-bold text-volt"
-                >
-                  {lead.name?.trim().charAt(0).toUpperCase() || "?"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-ink">{lead.name || "(no name given)"}</p>
-                  {contact ? (
-                    <p className="truncate font-mono text-[12px] text-ink-muted">
-                      {/* A captured email is the point of the product — make
-                          it one click to act on rather than something to
-                          select and copy by hand. */}
-                      {lead.email && (
-                        <a
-                          href={`mailto:${lead.email}`}
-                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-volt"
-                        >
-                          {lead.email}
-                        </a>
-                      )}
-                      {lead.email && lead.phone && " · "}
-                      {lead.phone && (
-                        <a
-                          href={`tel:${lead.phone}`}
-                          className="focus-ring rounded underline decoration-line-bright underline-offset-4 transition hover:text-volt"
-                        >
-                          {lead.phone}
-                        </a>
-                      )}
-                    </p>
-                  ) : (
-                    <p className="font-mono text-[12px] text-ink-faint">No contact info given</p>
-                  )}
-                  {lead.interest && (
-                    <p className="mt-2 rounded-lg border border-edge bg-paper-sunk px-3 py-2 text-[13px] leading-relaxed text-ink-muted">
-                      {lead.interest}
-                    </p>
-                  )}
-                </div>
-                <time
-                  dateTime={lead.created_at}
-                  className="shrink-0 font-mono text-[11px] whitespace-nowrap text-ink-faint"
-                >
-                  {new Date(lead.created_at).toLocaleDateString()}
-                </time>
-              </li>
-            );
-          })}
+                {new Date(lead.created_at).toLocaleDateString([], { month: "short", day: "numeric" })}
+              </time>
+            </li>
+          ))}
         </ul>
       )}
     </div>

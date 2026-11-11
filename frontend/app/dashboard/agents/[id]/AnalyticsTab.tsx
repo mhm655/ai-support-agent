@@ -3,11 +3,19 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import Skeleton from "@/components/Skeleton";
-import AnimatedNumber from "@/components/AnimatedNumber";
 import { FormError } from "@/components/FormField";
-import { ChartIcon, ConversationIcon, DocumentIcon, UserIcon } from "@/lib/icons";
 import type { Analytics } from "./types";
 
+/*
+ * Four numbers in one row, set in the poster type and divided by
+ * hairlines. This used to be four equal cards, each with an icon tile and a
+ * number that counted up from zero on every visit: the stock stat-card row
+ * of a generated dashboard. The counting in particular was pure decoration,
+ * replaying every time the tab was opened.
+ *
+ * Leads come first because they are the number a business owner opens this
+ * tab for; the rest are context.
+ */
 export default function AnalyticsTab({ agentId }: { agentId: string }) {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,48 +30,35 @@ export default function AnalyticsTab({ agentId }: { agentId: string }) {
 
   if (!analytics) {
     return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-32" />
+          <Skeleton key={i} className="h-28" />
         ))}
       </div>
     );
   }
 
-  const cards = [
-    { label: "Conversations", value: analytics.conversation_count, icon: ConversationIcon },
-    { label: "Messages", value: analytics.message_count, icon: ChartIcon },
-    { label: "Leads captured", value: analytics.lead_count, icon: UserIcon, highlight: true },
-    { label: "Documents", value: analytics.document_count, icon: DocumentIcon },
+  const stats = [
+    { label: "Leads captured", value: analytics.lead_count, lead: true },
+    { label: "Conversations", value: analytics.conversation_count },
+    { label: "Messages", value: analytics.message_count },
+    { label: "Documents", value: analytics.document_count },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {cards.map((card, i) => (
-        <div
-          key={card.label}
-          style={{ animationDelay: `${i * 60}ms` }}
-          // The highlight is carried by the border and icon tile only. A
-          // tinted panel background replaces bg-paper-raised rather than layering
-          // over it, which would make the "important" card the darkest one
-          // on the row: the opposite of the intent.
-          className={`panel enter p-5 ${card.highlight ? "border-volt/40" : ""}`}
-        >
-          <span
-            aria-hidden="true"
-            className={`grid h-9 w-9 place-items-center rounded-xl border ${
-              card.highlight ? "border-volt/30 bg-volt/15 text-volt" : "border-edge bg-paper-sunk text-ink-muted"
+    <dl className="grid grid-cols-2 gap-y-10 lg:grid-cols-4 lg:divide-x lg:divide-edge">
+      {stats.map((stat, i) => (
+        <div key={stat.label} className={i > 0 ? "lg:pl-8" : ""}>
+          <dt className="text-[14px] text-ink-muted">{stat.label}</dt>
+          <dd
+            className={`display-poster mt-2 text-[clamp(3.5rem,6vw,5.5rem)] tabular-nums ${
+              stat.lead ? "text-volt" : "text-ink"
             }`}
           >
-            <card.icon className="h-4.5 w-4.5" />
-          </span>
-          <AnimatedNumber
-            value={card.value}
-            className="mt-4 block font-display text-[32px] leading-none font-bold tabular-nums text-ink"
-          />
-          <p className="mt-2 text-[13px] text-ink-faint">{card.label}</p>
+            {stat.value.toLocaleString()}
+          </dd>
         </div>
       ))}
-    </div>
+    </dl>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { streamChat } from "@/lib/chat";
-import StatusDot from "@/components/StatusDot";
 import { AlertIcon, SendIcon } from "@/lib/icons";
 import type { ChatMessage, Document } from "./types";
 
@@ -94,7 +93,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
           when nothing has been uploaded, but reads as broken. Say so before
           the user spends five minutes testing an empty knowledge base. */}
       {readyDocs === 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-volt/30 bg-volt/[0.07] p-4">
+        <div className="flex items-start gap-3 rounded-[var(--radius-control)] border border-volt/30 bg-volt/[0.06] p-4">
           <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-volt" />
           <p className="text-[13px] leading-relaxed text-ink">
             <span className="font-medium">No documents are ready yet.</span>{" "}
@@ -107,10 +106,13 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
       )}
 
       <div className="panel overflow-hidden">
-        <div className="flex items-center gap-2.5 border-b border-edge bg-paper-sunk/50 px-4 py-3">
-          <StatusDot />
-          <span className="text-[13px] font-medium text-ink">Preview</span>
-          <span className="ml-auto font-mono text-[11px] text-ink-faint">same endpoint as the live widget</span>
+        {/* Header matches the landing page's live demo. The pulsing green
+            dot that used to sit here was always on, so it said nothing. */}
+        <div className="border-b border-edge px-5 py-4">
+          <p className="font-display text-[15px] font-bold text-ink">Preview</p>
+          <p className="mt-0.5 text-[13px] text-ink-muted">
+            Uses the same endpoint as the widget on your site.
+          </p>
         </div>
 
         <div
@@ -120,18 +122,18 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
           className="flex h-[26rem] flex-col gap-3 overflow-y-auto p-5"
         >
           {messages.length === 0 ? (
-            <div className="m-auto max-w-xs text-center">
-              <p className="text-sm leading-relaxed text-ink-muted">
+            <div className="mt-auto">
+              <p className="max-w-sm text-[14px] leading-relaxed text-ink-muted">
                 Ask something a customer would ask. Answers come from the documents you uploaded.
               </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <div className="mt-4 flex flex-col items-start gap-2">
                 {SUGGESTIONS.map((s, i) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => send(s)}
                     style={{ animationDelay: `${i * 60}ms` }}
-                    className="focus-ring enter rounded-full border border-edge bg-paper-sunk px-3 py-1.5 text-[12.5px] text-ink-muted transition hover:-translate-y-px hover:border-volt/40 hover:text-ink"
+                    className="focus-ring enter rounded-full border border-edge-strong px-4 py-2 text-[14px] text-ink transition hover:border-volt hover:text-volt active:scale-[0.98]"
                   >
                     {s}
                   </button>
@@ -147,10 +149,10 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
               return (
                 <div key={i} className={`enter ${m.role === "user" ? "self-end" : "self-start"}`}>
                   <span
-                    className={`inline-block max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    className={`inline-block ${
                       m.role === "user"
-                        ? "rounded-2xl rounded-br-md bg-volt font-medium text-white"
-                        : "rounded-2xl rounded-bl-md border border-edge bg-paper-sunk text-ink"
+                        ? "max-w-[85%] rounded-[18px] rounded-br-[6px] bg-volt px-4 py-2.5 text-[14px] leading-snug text-white"
+                        : "max-w-[92%] text-[15px] leading-relaxed text-ink"
                     }`}
                   >
                     {pending ? <TypingDots /> : m.text}
@@ -166,7 +168,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
             e.preventDefault();
             send(input.trim());
           }}
-          className="flex gap-2 border-t border-edge bg-paper-sunk/30 p-3"
+          className="flex gap-2 border-t border-edge p-3"
         >
           <label htmlFor="test-chat-input" className="sr-only">
             Ask something a customer might ask
@@ -177,7 +179,7 @@ export default function TestChatTab({ agentId }: { agentId: string }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask something a customer might ask…"
-            className="field flex-1 rounded-full"
+            className="field flex-1"
           />
           <button
             type="submit"

@@ -5,18 +5,19 @@ import { ToastProvider } from "@/components/Toast";
 import { MotionProvider } from "@/components/marketing/Motion";
 
 /*
- * Archivo carries the display voice. It loads 300 as well as the heavy
- * weights: the largest headlines are set light, which is the opposite of
- * the 700-weight hero every SaaS landing page ships. Authority through
- * restraint, the way Stripe and ElevenLabs set their display type. The
- * heavy weights stay for small headings, where light would go weedy.
+ * Archivo carries the display voice, loaded as a variable font with its
+ * width axis ("wdth", 62-125). The landing hero sets it heavy, condensed and
+ * uppercase (.display-poster); other headings use it at normal width.
+ * Loading the variable file rather than a list of static weights is what
+ * makes the width axis available at all, and covers every weight in one
+ * request.
  *
  * Instrument Sans reads cleanly at body sizes without the ubiquity of
  * Inter, and JetBrains Mono handles technical labels and code.
  */
 const display = Archivo({
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700", "800"],
+  axes: ["wdth"],
   variable: "--font-display",
 });
 const body = Instrument_Sans({
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#edece7",
+  themeColor: "#f4f4f2",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -50,7 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}
     >
-      <body className="grain flex min-h-screen flex-col bg-paper font-body text-ink">
+      <body className="flex min-h-screen flex-col bg-paper font-body text-ink">
         {/* reducedMotion="user" makes every Motion animation in the tree
             respect the OS setting, so no component has to branch on it. */}
         <MotionProvider>

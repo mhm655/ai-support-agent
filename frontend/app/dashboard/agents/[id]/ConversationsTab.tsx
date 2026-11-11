@@ -6,8 +6,20 @@ import EmptyState from "@/components/EmptyState";
 import Skeleton from "@/components/Skeleton";
 import SearchField from "@/components/SearchField";
 import { FormError } from "@/components/FormField";
-import { ArrowLeftIcon, ArrowRightIcon, ConversationIcon } from "@/lib/icons";
+import { ArrowLeftIcon } from "@/lib/icons";
 import type { Conversation, Message } from "./types";
+
+// "Sep 24, 10:26 AM". The date is what an owner scans a list of chats by;
+// the visitor id is a random string that means nothing to them, so it is
+// shown small beside it rather than as the headline of each row.
+function formatWhen(iso: string) {
+  return new Date(iso).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export default function ConversationsTab({ agentId }: { agentId: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -25,13 +37,14 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
       .finally(() => setLoading(false));
   }, [agentId]);
 
+  // Matches against the date as displayed, so what you can see is what
+  // you can search for.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return conversations;
     return conversations.filter(
       (c) =>
-        c.visitor_id?.toLowerCase().includes(q) ||
-        new Date(c.created_at).toLocaleString().toLowerCase().includes(q)
+        c.visitor_id?.toLowerCase().includes(q) || formatWhen(c.created_at).toLowerCase().includes(q)
     );
   }, [conversations, query]);
 
@@ -52,8 +65,8 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
   if (loading) {
     return (
       <div className="flex flex-col gap-2">
-        {[0, 1].map((i) => (
-          <Skeleton key={i} className="h-[72px]" />
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-[60px]" />
         ))}
       </div>
     );
@@ -68,56 +81,52 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
             setSelected(null);
             setError(null);
           }}
-          className="focus-ring mb-4 inline-flex items-center gap-1.5 rounded text-sm text-ink-faint transition hover:text-ink"
+          className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-ink-muted transition hover:text-ink"
         >
           <ArrowLeftIcon className="h-4 w-4" />
-          Back to conversations
+          All conversations
         </button>
 
-        {error && <FormError>{error}</FormError>}
-
-        <div className="panel overflow-hidden">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-edge bg-paper-sunk/50 px-5 py-3">
-            <span className="font-mono text-[12px] text-ink">
-              {conversation?.visitor_id?.slice(0, 24) || "unknown visitor"}
-            </span>
-            {conversation && (
-              <span className="font-mono text-[11px] text-ink-faint">
-                {new Date(conversation.created_at).toLocaleString()}
-              </span>
-            )}
-            <span className="ml-auto font-mono text-[11px] text-ink-faint">
-              {messages.length} message{messages.length === 1 ? "" : "s"}
-            </span>
+        {error && (
+          <div className="mt-4">
+            <FormError>{error}</FormError>
           </div>
+        )}
 
-          <div className="flex flex-col gap-3 p-5">
-            {loadingThread ? (
-              <>
-                <Skeleton className="h-10 w-2/3 self-start" />
-                <Skeleton className="h-10 w-1/2 self-end" />
-              </>
-            ) : (
-              messages.map((m, i) => (
-                <div
-                  key={m.id}
-                  className={`enter ${m.role === "user" ? "self-end" : "self-start"}`}
-                  style={{ animationDelay: `${Math.min(i, 10) * 35}ms` }}
-                >
-                  <span
-                    className={`inline-block max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${
-                      m.role === "user"
-                        ? "rounded-2xl rounded-br-md bg-volt font-medium text-white"
-                        : "rounded-2xl rounded-bl-md border border-edge bg-paper-sunk text-ink"
-                    }`}
-                  >
-                    {m.content}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h2 className="font-display text-[22px] font-bold text-ink">
+            {conversation ? formatWhen(conversation.created_at) : "Conversation"}
+          </h2>
+          <span className="text-[13px] text-ink-faint">
+            {messages.length} message{messages.length === 1 ? "" : "s"}
+            {conversation?.visitor_id && <> · {conversation.visitor_id.slice(0, 24)}</>}
+          </span>
         </div>
+
+        {/* A transcript, not a chat window. Bubbles suit the person typing;
+            an owner reading back a finished conversation is reading a
+            record, and a speaker column scans faster. */}
+        {loadingThread ? (
+          <div className="mt-6 flex flex-col gap-3 border-t border-edge pt-6">
+            <Skeleton className="h-10 w-2/3" />
+            <Skeleton className="h-10 w-1/2" />
+          </div>
+        ) : (
+          <ol className="mt-6 divide-y divide-edge border-y border-edge">
+            {messages.map((m) => (
+              <li key={m.id} className="grid grid-cols-1 gap-1 py-5 sm:grid-cols-[6.5rem_1fr] sm:gap-6">
+                <span
+                  className={`text-[13px] font-medium ${m.role === "user" ? "text-volt" : "text-ink-muted"}`}
+                >
+                  {m.role === "user" ? "Visitor" : "Agent"}
+                </span>
+                <p className="max-w-[65ch] text-[15px] leading-relaxed whitespace-pre-wrap text-ink">
+                  {m.content}
+                </p>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
     );
   }
@@ -127,7 +136,6 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
   if (conversations.length === 0) {
     return (
       <EmptyState
-        icon={<ConversationIcon className="h-5 w-5" />}
         title="No conversations yet"
         description="Chats from the test panel or the embedded widget will appear here, transcript and all."
       />
@@ -141,7 +149,7 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
           value={query}
           onChange={setQuery}
           label="Search conversations"
-          placeholder="Search by visitor or date…"
+          placeholder="Search by date or visitor…"
           resultCount={filtered.length}
           totalCount={conversations.length}
           noun="conversation"
@@ -149,32 +157,23 @@ export default function ConversationsTab({ agentId }: { agentId: string }) {
       )}
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-edge bg-paper-raised/40 px-6 py-10 text-center text-sm text-ink-faint">
+        <p className="border-t border-edge py-10 text-[15px] text-ink-muted">
           No conversations match &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {filtered.map((c, i) => (
-            <li key={c.id} className="enter" style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+        <ul className="divide-y divide-edge border-y border-edge">
+          {filtered.map((c) => (
+            <li key={c.id}>
               <button
                 onClick={() => openConversation(c.id)}
-                className="panel focus-ring group flex w-full items-center gap-4 p-4 text-left transition hover:border-volt/40 hover:bg-paper-sunk/60"
+                className="focus-ring group flex w-full items-baseline gap-4 px-1 py-4 text-left transition hover:bg-paper-sunk/60"
               >
-                <span
-                  aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-ink-muted"
-                >
-                  <ConversationIcon className="h-4 w-4" />
+                <span className="text-[15px] font-medium text-ink transition group-hover:text-volt">
+                  {formatWhen(c.created_at)}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-mono text-[13px] text-ink">
-                    {c.visitor_id?.slice(0, 20) || "unknown visitor"}
-                  </span>
-                  <span className="block text-[13px] text-ink-faint">
-                    {new Date(c.created_at).toLocaleString()}
-                  </span>
+                <span className="min-w-0 truncate text-[13px] text-ink-faint">
+                  {c.visitor_id?.slice(0, 20) || "unknown visitor"}
                 </span>
-                <ArrowRightIcon className="h-4 w-4 shrink-0 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-volt" />
               </button>
             </li>
           ))}

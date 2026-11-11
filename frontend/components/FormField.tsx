@@ -112,7 +112,7 @@ export function FormError({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="alert"
-      className="flex items-start gap-2 rounded-xl border border-bad/25 bg-bad/10 px-3 py-2.5 text-sm leading-relaxed text-bad"
+      className="flex items-start gap-2 rounded-[var(--radius-control)] border border-bad/25 bg-bad/10 px-3 py-2.5 text-sm leading-relaxed text-bad"
     >
       {children}
     </p>

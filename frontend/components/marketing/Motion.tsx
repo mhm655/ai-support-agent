@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MotionConfig, motion, type Variants } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 
 /*
  * Motion primitives for the marketing pages. Client leaves only: the page
@@ -54,54 +54,6 @@ export function Reveal({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6, delay, ease: EASE }}
     >
-      {children}
-    </motion.div>
-  );
-}
-
-/*
- * Parent/child pair for sequenced reveals. Both must live in the same client
- * tree for staggerChildren to reach the children at all.
- */
-const containerVariants: Variants = {
-  hidden: {},
-  shown: { transition: { staggerChildren: 0.07 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  shown: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
-};
-
-export function Stagger({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      className={className}
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="shown"
-      viewport={{ once: true, amount: 0.15 }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export function StaggerItem({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <motion.div className={className} variants={itemVariants}>
       {children}
     </motion.div>
   );

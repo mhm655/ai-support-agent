@@ -545,6 +545,16 @@
     el.appendChild(retry);
   }
 
+  // Retry-After is seconds, and the per-agent daily limit can make it
+  // hours: "Try again in 43200s" tells a visitor nothing.
+  function formatWait(retryAfter) {
+    const s = Number(retryAfter);
+    if (!s) return "";
+    if (s < 120) return " Try again in " + s + "s.";
+    if (s < 7200) return " Try again in " + Math.ceil(s / 60) + " minutes.";
+    return " Try again in " + Math.ceil(s / 3600) + " hours.";
+  }
+
   async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text || streaming) return;
@@ -580,7 +590,7 @@
         } catch {
           /* no JSON body, keep the default message */
         }
-        showRetry(assistantEl, detail + (retryAfter ? " Try again in " + retryAfter + "s." : ""));
+        showRetry(assistantEl, detail + formatWait(retryAfter));
         messagesEl.scrollTop = messagesEl.scrollHeight;
         return;
       }

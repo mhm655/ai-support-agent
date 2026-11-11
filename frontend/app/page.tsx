@@ -1,10 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
-import HeroPanel from "@/components/marketing/HeroPanel";
-import TiltPanel from "@/components/marketing/TiltPanel";
-import RetrievalDiagram from "@/components/marketing/RetrievalDiagram";
-import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
+import LiveDemo from "@/components/marketing/LiveDemo";
+import { Reveal } from "@/components/marketing/Motion";
 import CopyButton from "@/components/CopyButton";
 import { BrandLink } from "@/components/Brand";
 
@@ -13,92 +10,35 @@ const DEMO_AGENT_ID = process.env.NEXT_PUBLIC_DEMO_AGENT_ID;
 const EMBED_SNIPPET = `<script src="https://frontdesk.ai/widget.js"
         data-agent-id="YOUR_AGENT_ID"></script>`;
 
-// One label per intent, used identically everywhere it appears.
+// One label per intent, used identically everywhere it appears. The demo
+// has no button: it is live in the hero itself.
 const CTA_SIGNUP = "Get started free";
-const CTA_DEMO = "Try the live demo";
 
-const STACK = [
-  { name: "Next.js", slug: "nextdotjs" },
-  { name: "FastAPI", slug: "fastapi" },
-  { name: "PostgreSQL", slug: "postgresql" },
-  { name: "Supabase", slug: "supabase" },
-  { name: "Google Gemini", slug: "googlegemini" },
-  { name: "Vercel", slug: "vercel" },
-];
-
+// Each step is named by its verb, which is the label. Numbering them 01, 02,
+// 03 said nothing the order of the list does not already say.
 const STEPS = [
   {
-    n: "01",
-    title: "Upload what you already have",
-    body: "Price lists, hours, insurance details, FAQs. A PDF or a text file. No formatting, no tagging, no rewriting it into a script.",
+    verb: "Upload",
+    body: "Your price list, opening hours, policies and FAQs. A PDF or a text file, exactly as it is.",
   },
   {
-    n: "02",
-    title: "It reads and indexes them",
-    body: "Each document is split into passages and embedded, so a question retrieves the passages that answer it before a word is generated.",
+    verb: "Ask",
+    body: "Visitors ask in their own words, at any hour. Every answer comes from your files.",
   },
   {
-    n: "03",
-    title: "Paste one line on your site",
-    body: "A single script tag. It works on Squarespace, WordPress or a plain static page. Nobody needs to touch a framework.",
+    verb: "Paste",
+    body: "One line of code on your website. It works on Squarespace, WordPress and anything else.",
   },
 ];
 
-const CAPABILITIES = [
-  {
-    title: "Answers from your documents",
-    body: "Pricing, hours, policies, which insurance you take. Drawn from the files you uploaded, never invented.",
-  },
-  {
-    title: "Captures the lead",
-    body: "When a visitor wants to book, it collects a name, an email and what they are after, then files it in your dashboard.",
-  },
-  {
-    title: "Holds the thread",
-    body: "Follow-up questions keep their context. Nobody has to repeat which appointment they were asking about.",
-  },
-  {
-    title: "Says when it cannot answer",
-    body: "If the answer is not in your documents it says so and offers a hand-off, instead of guessing.",
-  },
+// The question a real visitor types, next to who asks it.
+const WHO = [
+  { who: "Dentists", asked: "Do you take Delta Dental?" },
+  { who: "Salons", asked: "How much is a balayage?" },
+  { who: "Contractors", asked: "Do you cover the east side?" },
 ];
 
-const USE_CASES = [
-  {
-    name: "Dental and medical",
-    detail: "Insurance questions, appointment requests, after-hours coverage.",
-    asked: "Do you take Delta Dental?",
-  },
-  {
-    name: "Salons and spas",
-    detail: "Service menus, pricing, and booking interest captured overnight.",
-    asked: "How much is a balayage?",
-  },
-  {
-    name: "Home services",
-    detail: "Quote requests, service areas, and callbacks while you are on a job.",
-    asked: "Do you cover the east side?",
-  },
-];
-
-const INTERNALS = [
-  {
-    title: "Retrieval, not recall",
-    body: "Documents are chunked, embedded, and stored in Postgres with pgvector. Every question runs a similarity search first, so the model answers from retrieved passages instead of from memory.",
-  },
-  {
-    title: "Streamed token by token",
-    body: "Replies arrive over Server-Sent Events as they are generated. Failures stream too, so an exhausted API quota surfaces as a readable message rather than a socket that quietly dies.",
-  },
-  {
-    title: "Lead capture by function call",
-    body: "The model decides when it has a name and a way to reach someone, then calls a tool to record it. No brittle regex scraping the transcript for an @ sign.",
-  },
-  {
-    title: "Scoped at the API boundary",
-    body: "Every dashboard query resolves a business ID from a verified JWT before it touches a row. The public chat endpoint is the one deliberately open surface.",
-  },
-];
+const REPO_URL = "https://github.com/mhm655/ai-support-agent";
 
 export default function LandingPage() {
   return (
@@ -111,17 +51,8 @@ export default function LandingPage() {
             <a href="#how" className="focus-ring rounded text-[14px] text-ink-muted transition hover:text-ink">
               How it works
             </a>
-            <a
-              href="#retrieval"
-              className="focus-ring rounded text-[14px] text-ink-muted transition hover:text-ink"
-            >
-              Retrieval
-            </a>
-            <a
-              href="#internals"
-              className="focus-ring rounded text-[14px] text-ink-muted transition hover:text-ink"
-            >
-              Under the hood
+            <a href="#who" className="focus-ring rounded text-[14px] text-ink-muted transition hover:text-ink">
+              Who it&apos;s for
             </a>
           </nav>
           <div className="flex items-center gap-1 sm:gap-3">
@@ -138,306 +69,152 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ============================================== 1. Hero (split) === */}
+      {/* ========================================= 1. Hero (poster) === */}
+      {/*
+        Type-led and asymmetric. The headline runs across the full width,
+        its second line pushed right; under it, the pitch sits in a narrow
+        left column and the real agent sits to the right. The demo panel is
+        the only product imagery here, and it is the product, live.
+      */}
       <section>
-        <div className="mx-auto grid max-w-[82rem] grid-cols-1 items-center gap-14 px-5 py-16 sm:px-8 lg:grid-cols-[1.15fr_25rem] lg:gap-20 lg:py-24">
-          <div>
-            <div className="hero-in">
-              {/* The whole voice of the page is in this block: heavy Archivo,
-                  near-zero leading, tight negative tracking. */}
-              <h1 className="display-xl text-[3rem] sm:text-[4.25rem] lg:text-[5.25rem]">
-                Someone&apos;s always
-                <br />
-                at the desk.
-                <br />
-                <span className="text-volt">Even at 2am.</span>
-              </h1>
-            </div>
+        <div className="mx-auto max-w-[82rem] px-5 pt-12 pb-20 sm:px-8 lg:pt-16 lg:pb-28">
+          <h1 className="display-poster text-[clamp(3.75rem,10vw,9.5rem)] text-ink">
+            <span className="poster-line">
+              <span className="poster-in">Someone&apos;s always</span>
+            </span>
+            <span className="poster-line sm:pl-[14vw]">
+              <span className="poster-in poster-in-2">at the desk.</span>
+            </span>
+          </h1>
 
-            <div className="hero-in-2">
-              <p className="mt-8 max-w-[34rem] text-[17px] leading-relaxed text-ink-muted">
-                An AI front desk trained on your hours, pricing and policies. It answers, books, and
-                captures the lead.
+          <div className="mt-12 grid grid-cols-1 gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-8">
+            <div className="hero-in-2 lg:col-span-4">
+              <p className="max-w-[26rem] text-[19px] leading-[1.45] text-ink-muted">
+                <span className="font-semibold text-ink">Even at 2am.</span> An AI front desk that
+                answers from your own documents and captures the lead.
               </p>
-            </div>
-
-            <div className="hero-in-3 mt-10 flex flex-wrap items-center gap-3">
-              <Link href="/signup" className="btn btn-volt px-6 py-3">
-                {CTA_SIGNUP}
-                <ArrowRight weight="bold" className="h-4 w-4" />
-              </Link>
-              <Link href="/demo" className="btn btn-ghost px-6 py-3">
-                {CTA_DEMO}
-              </Link>
-            </div>
-          </div>
-
-          <TiltPanel className="hero-in-4 flex justify-center lg:justify-end">
-            <HeroPanel demoAgentId={DEMO_AGENT_ID} />
-          </TiltPanel>
-        </div>
-      </section>
-
-      {/* ==================================== 2. Stack strip (logo wall) == */}
-      <section>
-        <div className="mx-auto flex max-w-[82rem] flex-col gap-6 px-5 py-7 sm:px-8 md:flex-row md:items-center md:gap-14">
-          <p className="shrink-0 text-[13px] text-ink-faint">Built with</p>
-          <Reveal className="flex flex-wrap items-center gap-x-11 gap-y-6">
-            {STACK.map((tech) => (
-              // Real brand marks rather than styled text wordmarks.
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                key={tech.slug}
-                src={`https://cdn.simpleicons.org/${tech.slug}/8a8a80`}
-                alt={tech.name}
-                width={22}
-                height={22}
-                loading="lazy"
-                className="h-[22px] w-auto opacity-90 transition hover:opacity-100"
-              />
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =================== 3. Retrieval, drawn (the signature moment) === */}
-      <section id="retrieval" className="scroll-mt-16">
-        <div className="mx-auto max-w-[82rem] px-5 pt-24 sm:px-8">
-          <Reveal className="max-w-3xl">
-            <p className="label-mono text-volt">The part that decides whether it is true</p>
-            <h2 className="display mt-5 text-[2.25rem] sm:text-[3rem]">
-              It does not know your business.
-              <br />
-              It looks your business up.
-            </h2>
-            <p className="mt-6 max-w-xl text-[16px] leading-relaxed text-ink-muted">
-              Before a single word is generated, the question is embedded and matched against the
-              passages of your own documents. The model only ever answers from what came back.
-            </p>
-          </Reveal>
-        </div>
-
-        <Reveal className="mt-16 border-t border-edge">
-          <RetrievalDiagram />
-        </Reveal>
-      </section>
-
-      {/* ==================== 4. The install (centred code artifact) ====== */}
-      <section className="bg-paper-sunk">
-        <div className="mx-auto max-w-[52rem] px-5 py-24 text-center sm:px-8">
-          <Reveal>
-            <h2 className="display text-[2rem] sm:text-[2.5rem]">This is the entire integration.</h2>
-            <p className="mx-auto mt-5 max-w-[34rem] text-[15px] leading-relaxed text-ink-muted">
-              No SDK, no npm install, no framework opinion. Paste it before the closing body tag and
-              the widget is live on the site you already have.
-            </p>
-          </Reveal>
-
-          <Reveal delay={0.1} className="mt-10">
-            <div
-              className="panel-dark overflow-hidden text-left"
-              style={{ boxShadow: "var(--shadow-4)" }}
-            >
-              <div className="flex items-center gap-2 border-b border-edge-dark px-4 py-2.5">
-                <span className="font-mono text-[11px] text-bone-faint">index.html</span>
-                <CopyButton value={EMBED_SNIPPET} tone="dark" className="ml-auto" />
+              <div className="mt-8">
+                <Link href="/signup" className="btn btn-volt px-6 py-3">
+                  {CTA_SIGNUP}
+                  <ArrowRight weight="bold" className="h-4 w-4" />
+                </Link>
               </div>
-              <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed sm:text-[13.5px]">
-                <code>
-                  <span className="text-bone-faint">&lt;</span>
-                  <span className="text-volt">script</span>{" "}
-                  <span className="text-bone-muted">src</span>
-                  <span className="text-bone-faint">=</span>
-                  <span className="text-bone">&quot;https://frontdesk.ai/widget.js&quot;</span>
-                  {"\n        "}
-                  <span className="text-bone-muted">data-agent-id</span>
-                  <span className="text-bone-faint">=</span>
-                  <span className="text-bone">&quot;YOUR_AGENT_ID&quot;</span>
-                  <span className="text-bone-faint">&gt;&lt;/</span>
-                  <span className="text-volt">script</span>
-                  <span className="text-bone-faint">&gt;</span>
-                </code>
-              </pre>
             </div>
-          </Reveal>
+
+            {DEMO_AGENT_ID && (
+              <div className="hero-in-3 lg:col-span-6 lg:col-start-7">
+                <LiveDemo agentId={DEMO_AGENT_ID} />
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* ======================= 5. How it works (staircase progression) == */}
+      {/* ================================= 2. How it works (verbs) === */}
+      {/* Giant condensed verbs as the labels, a sentence each beside them.
+          The install snippet lives in its own step instead of a section. */}
       <section id="how" className="scroll-mt-16">
-        <div className="mx-auto max-w-[82rem] px-5 py-24 sm:px-8">
-          <Reveal className="max-w-2xl">
-            <h2 className="display text-[2rem] sm:text-[2.75rem]">
-              Three steps, and none of them is writing a chatbot script.
-            </h2>
+        <div className="mx-auto max-w-[82rem] px-5 py-24 sm:px-8 lg:py-32">
+          <Reveal>
+            <h2 className="display text-[2rem] sm:text-[2.75rem]">How it works</h2>
           </Reveal>
 
-          {/* Each step sits further right than the last, so the section reads
-              as a path rather than three interchangeable columns. */}
-          <Stagger className="mt-16 flex flex-col gap-12">
-            {STEPS.map((step, i) => (
-              <StaggerItem key={step.n}>
-                <div
-                  style={{ ["--indent" as string]: `${i * 8}rem` }}
-                  className="max-w-2xl border-t border-edge pt-6 lg:ml-[var(--indent)]"
-                >
-                  <div className="flex items-baseline gap-6">
-                    <span aria-hidden="true" className="font-mono text-[12px] tabular-nums text-volt">
-                      {step.n}
-                    </span>
-                    <div>
-                      <h3 className="display text-[1.35rem] sm:text-[1.6rem]">{step.title}</h3>
-                      <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">{step.body}</p>
-                    </div>
+          <div className="mt-12 divide-y divide-edge border-t border-edge">
+            {STEPS.map((step) => (
+              <Reveal key={step.verb}>
+                <div className="grid grid-cols-1 gap-4 py-10 lg:grid-cols-12 lg:items-end lg:gap-8 lg:py-14">
+                  <h3 className="display-poster text-[clamp(3.25rem,8vw,7.5rem)] lg:col-span-6">
+                    {step.verb}
+                  </h3>
+                  <div className="lg:col-span-5 lg:col-start-8">
+                    <p className="text-[18px] leading-[1.5] text-ink-muted">{step.body}</p>
+                    {step.verb === "Paste" && (
+                      <div className="mt-6 overflow-hidden rounded-[var(--radius-control)] border border-edge bg-paper-sunk">
+                        <div className="flex items-center border-b border-edge px-4 py-2">
+                          <span className="font-mono text-[11px] text-ink-faint">index.html</span>
+                          <CopyButton value={EMBED_SNIPPET} className="ml-auto" />
+                        </div>
+                        <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed text-ink">
+                          <code>{EMBED_SNIPPET}</code>
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </StaggerItem>
+              </Reveal>
             ))}
-          </Stagger>
+          </div>
         </div>
       </section>
 
-      {/* ============ 6. What it does (glass panels on the colour field) == */}
-      {/* The page's one saturated ground. Translucent panels float on it and
-          pick up its light through their edges, which is the whole reason
-          for using glass rather than a tinted box. */}
-      <section className="field-bg relative overflow-hidden text-white">
-        <div className="relative mx-auto max-w-[82rem] px-5 py-28 sm:px-8">
-          <Reveal>
-            <h2 className="display max-w-2xl text-[2rem] sm:text-[2.75rem]">
-              What it actually does on your site
+      {/* ============================= 3. Two promises (staggered pair) === */}
+      {/* What it will and will not do, as two statements set on a diagonal
+          rather than a row of feature cards. This replaces the animated
+          retrieval diagram, which showed invented documents and scores. */}
+      <section>
+        <div className="mx-auto grid max-w-[82rem] grid-cols-1 gap-20 px-5 pb-24 sm:px-8 lg:grid-cols-12 lg:gap-8 lg:pb-32">
+          <Reveal className="lg:col-span-6">
+            <h2 className="display text-[2.25rem] leading-[1.02] sm:text-[3.25rem]">
+              It only says what your documents say.
             </h2>
+            <p className="mt-6 max-w-[30rem] text-[17px] leading-[1.55] text-ink-muted">
+              No invented prices and no guessed opening hours. If the answer isn&apos;t in your
+              files, it tells the visitor and offers to have someone get back to them.
+            </p>
           </Reveal>
 
-          <Stagger className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {CAPABILITIES.map((cap, i) => (
-              <StaggerItem key={cap.title} className="h-full">
-                <div className="glass h-full p-6">
-                  <span aria-hidden="true" className="font-mono text-[11px] tabular-nums text-white/55">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="mt-4 text-[17px] leading-snug font-semibold text-white">
-                    {cap.title}
-                  </h3>
-                  <p className="mt-2.5 text-[14.5px] leading-relaxed text-white/72">{cap.body}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </section>
-
-      {/* ======================= 7. The dashboard (product showcase) ====== */}
-      {/* A real screenshot of the running product, not a rendering of one. */}
-      <section className="bg-paper-sunk">
-        <div className="mx-auto max-w-[82rem] px-5 pt-24 sm:px-8">
-          <Reveal className="max-w-2xl">
-            <h2 className="display text-[2rem] sm:text-[2.75rem]">
-              Every conversation that turns into a lead lands here
+          <Reveal className="lg:col-span-6 lg:col-start-7 lg:mt-56">
+            <h2 className="display text-[2.25rem] leading-[1.02] sm:text-[3.25rem]">
+              When someone wants to book, <span className="text-volt">you get their details.</span>
             </h2>
-            <p className="mt-5 text-[15px] leading-relaxed text-ink-muted">
-              Name, contact details, and what the visitor actually wanted, captured while you were
-              closed. Searchable, and one click from replying.
+            <p className="mt-6 max-w-[30rem] text-[17px] leading-[1.55] text-ink-muted">
+              Their name, how to reach them and what they asked about, saved to your dashboard
+              while you&apos;re closed.
             </p>
           </Reveal>
         </div>
-
-        <Reveal delay={0.1}>
-          <div className="mx-auto mt-14 max-w-[58rem] px-5 sm:px-8">
-            {/* Cropped and faded at the bottom, so the panel reads as part of
-                a longer list rather than a screenshot that ends. */}
-            <div
-              className="relative max-h-[24rem] overflow-hidden rounded-t-[4px] border border-b-0 border-edge-dark"
-              style={{ boxShadow: "var(--shadow-4)" }}
-            >
-              <Image
-                src="/images/product-leads.png"
-                width={1408}
-                height={1460}
-                alt="The dashboard's Leads tab, listing captured leads with each visitor's name, email or phone, and a note of what they asked about."
-                className="w-full"
-                sizes="(min-width: 928px) 58rem, 100vw"
-              />
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-paper-sunk to-transparent"
-              />
-            </div>
-          </div>
-        </Reveal>
       </section>
 
-      {/* ================================= 8. Who it is for (scroll rail) = */}
-      <section className="py-24">
-        <div className="mx-auto max-w-[82rem] px-5 sm:px-8">
+      {/* ============================== 4. Who it's for (inline type) ===== */}
+      {/* One run of text at two scales: the business in poster type, the
+          question its customers ask set small beside it, flowing and
+          wrapping like a sentence instead of sitting in three cards. */}
+      <section id="who" className="scroll-mt-16 border-t border-edge">
+        <div className="mx-auto max-w-[82rem] px-5 py-24 sm:px-8 lg:py-32">
           <Reveal>
             <h2 className="display max-w-2xl text-[2rem] sm:text-[2.75rem]">
-              Built for businesses that answer the same five questions all day
+              Made for businesses that get the same questions all day
             </h2>
           </Reveal>
-        </div>
-
-        <Reveal className="mt-14">
-          <div className="rail flex gap-4 overflow-x-auto px-5 pb-4 sm:px-8 lg:px-[max(2rem,calc((100vw-82rem)/2))]">
-            {USE_CASES.map((uc) => (
-              <article
-                key={uc.name}
-                className="panel flex w-[17rem] shrink-0 flex-col p-6 sm:w-[21rem]"
-              >
-                {/* The question a real visitor types is more useful here than
-                    a stock photograph of a room. */}
-                <p className="font-mono text-[13px] leading-relaxed text-volt">
-                  &ldquo;{uc.asked}&rdquo;
-                </p>
-                <h3 className="mt-8 text-[17px] font-semibold">{uc.name}</h3>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-ink-muted">{uc.detail}</p>
-              </article>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ========================== 9. Under the hood (editorial list) ==== */}
-      <section id="internals" className="scroll-mt-16">
-        <div className="mx-auto max-w-[82rem] px-5 py-24 sm:px-8">
-          <Reveal className="max-w-2xl">
-            <p className="label-mono text-ink-faint">Under the hood</p>
-            <h2 className="display mt-5 text-[2rem] sm:text-[2.75rem]">
-              The part a reviewer would want to poke at
-            </h2>
-          </Reveal>
-
-          <Stagger className="mt-14 border-t border-edge">
-            {INTERNALS.map((item, i) => (
-              <StaggerItem key={item.title}>
-                <div className="grid grid-cols-1 gap-3 border-b border-edge py-8 md:grid-cols-[3rem_17rem_1fr] md:gap-10">
-                  <span aria-hidden="true" className="font-mono text-[12px] tabular-nums text-volt">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="text-[17px] font-semibold">{item.title}</h3>
-                  <p className="max-w-2xl text-[15px] leading-relaxed text-ink-muted">{item.body}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </section>
-
-      {/* ====================== 10. Closing (inverted manifesto slab) ===== */}
-      {/* The one full theme flip on the page, used once as a deliberate
-          close rather than as alternating decoration. */}
-      <section className="bg-slab text-bone">
-        <div className="mx-auto max-w-[52rem] px-5 py-32 text-center sm:px-8">
           <Reveal>
-            <h2 className="display-xl text-[2.5rem] sm:text-[3.75rem]">
+            <p className="mt-14 leading-none">
+              {WHO.map(({ who, asked }) => (
+                <span key={who} className="mr-8 inline-block align-baseline sm:mr-12">
+                  <span className="display-poster text-[clamp(3rem,9vw,8.5rem)]">{who}</span>{" "}
+                  <span className="mt-1 mb-4 block text-[16px] whitespace-nowrap text-volt sm:mt-0 sm:mb-0 sm:ml-4 sm:inline sm:text-[18px]">
+                    &ldquo;{asked}&rdquo;
+                  </span>
+                </span>
+              ))}
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ===================================== 5. Close (poster, light) === */}
+      {/* Mirrors the hero's poster voice so the page is bookended by it.
+          Stays on the page's one light ground rather than flipping to black. */}
+      <section className="border-t border-edge">
+        <div className="mx-auto max-w-[82rem] px-5 py-24 sm:px-8 lg:py-32">
+          <Reveal>
+            <h2 className="display-poster max-w-[14ch] text-[clamp(3rem,7.5vw,7rem)]">
               Stop answering the same five questions.
             </h2>
-            <p className="mx-auto mt-7 max-w-md text-[16px] leading-relaxed text-bone-muted">
-              Upload one document, get an agent, paste one line. It can be running before your next
-              customer emails.
-            </p>
-            <div className="mt-10 flex justify-center">
-              <Link href="/signup" className="btn btn-volt px-8 py-3.5">
+            <div className="mt-10 flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-[28rem] text-[18px] leading-[1.5] text-ink-muted">
+                Upload one document, paste one line, and it&apos;s answering your customers today.
+              </p>
+              <Link href="/signup" className="btn btn-volt self-start px-8 py-3.5 sm:self-auto">
                 {CTA_SIGNUP}
                 <ArrowRight weight="bold" className="h-4 w-4" />
               </Link>
@@ -446,10 +223,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="bg-slab">
-        <div className="mx-auto flex max-w-[82rem] flex-col items-center justify-between gap-4 border-t border-edge-dark px-5 py-8 sm:flex-row sm:px-8">
-          <BrandLink invert />
-          <p className="font-mono text-[11px] text-bone-faint">frontdesk.ai, a portfolio project</p>
+      <footer className="border-t border-edge">
+        <div className="mx-auto flex max-w-[82rem] flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <BrandLink />
+          <p className="text-[13px] text-ink-faint">
+            A portfolio project.{" "}
+            <a
+              href={REPO_URL}
+              className="focus-ring rounded text-ink-muted underline decoration-edge-strong underline-offset-4 transition hover:text-ink"
+            >
+              How it&apos;s built
+            </a>
+          </p>
         </div>
       </footer>
     </div>

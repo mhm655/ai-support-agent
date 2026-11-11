@@ -9,7 +9,7 @@ import PageHeading from "@/components/PageHeading";
 import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
 import { useToast } from "@/components/Toast";
-import { CheckIcon, ChatIcon, ClockIcon, SpinnerIcon, UserIcon } from "@/lib/icons";
+import { CheckIcon, SpinnerIcon } from "@/lib/icons";
 
 type Business = {
   id: string;
@@ -87,7 +87,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardShell width="max-w-3xl">
-      <PageHeading eyebrow="Account" title="Profile" description="Your account and business details." />
+      <PageHeading title="Profile" description="Your account and business details." />
 
       {loading ? (
         <div className="mt-8 flex flex-col gap-4">
@@ -95,59 +95,34 @@ export default function ProfilePage() {
           <Skeleton className="h-64" />
         </div>
       ) : (
-        <div className="mt-8 flex flex-col gap-4">
-          {/* Identity panel. The accent ring makes the avatar read as the
-              account's anchor rather than a decorative circle. */}
-          <div className="panel flex items-center gap-5 p-6">
-            <span
-              aria-hidden="true"
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-volt/25 bg-volt/10 text-volt"
-            >
-              <UserIcon className="h-6 w-6" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-display text-lg font-bold tracking-tight text-ink">
-                {business?.name}
-              </p>
-              <p className="truncate text-sm text-ink-muted">{email}</p>
-            </div>
-          </div>
-
-          {/* At-a-glance stats */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="panel flex items-center gap-4 p-5">
-              <span
-                aria-hidden="true"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
-              >
-                <ChatIcon className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="font-display text-2xl font-bold tabular-nums text-ink">{agentCount}</p>
-                <p className="text-sm text-ink-faint">
-                  agent{agentCount === 1 ? "" : "s"} configured
-                </p>
+        <div className="mt-10 flex flex-col gap-10">
+          {/* The account's facts as a plain list. This used to be an
+              avatar tile plus two stat cards, each with its own icon tile.
+              Name and email are left to the form below, which shows them
+              anyway; listing them twice on one screen was noise. */}
+          <dl className="divide-y divide-edge border-y border-edge">
+            {[
+              { term: "Agents", value: agentCount },
+              {
+                term: "Member since",
+                value: business
+                  ? new Date(business.created_at).toLocaleDateString([], {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "Unknown",
+              },
+            ].map((row) => (
+              <div key={row.term} className="grid grid-cols-1 gap-1 px-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
+                <dt className="text-[14px] text-ink-muted">{row.term}</dt>
+                <dd className="truncate text-[15px] font-medium text-ink">{row.value}</dd>
               </div>
-            </div>
-
-            <div className="panel flex items-center gap-4 p-5">
-              <span
-                aria-hidden="true"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
-              >
-                <ClockIcon className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="font-display text-lg font-bold text-ink">
-                  {business ? new Date(business.created_at).toLocaleDateString() : "Unknown"}
-                </p>
-                <p className="text-sm text-ink-faint">member since</p>
-              </div>
-            </div>
-          </div>
+            ))}
+          </dl>
 
           <div className="panel p-6">
-            <h2 className="font-display text-base font-bold tracking-tight text-ink">Business details</h2>
+            <h2 className="font-display text-[18px] font-bold text-ink">Business details</h2>
 
             <form onSubmit={handleSave} className="mt-5 flex flex-col gap-5" noValidate>
               <div className="flex flex-col gap-1.5">
@@ -180,7 +155,7 @@ export default function ProfilePage() {
                   className="field max-w-sm"
                 />
                 <span className="text-xs text-ink-faint">
-                  Managed through your Supabase account, not editable here.
+                  Your login email can&apos;t be changed here.
                 </span>
               </div>
 

@@ -6,7 +6,7 @@ import CopyButton from "@/components/CopyButton";
 import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
 import { useToast } from "@/components/Toast";
-import { CheckIcon, CodeIcon, SpinnerIcon } from "@/lib/icons";
+import { CheckIcon, SpinnerIcon } from "@/lib/icons";
 import type { Agent } from "./types";
 
 const PERSONALITY_MAX = 1000;
@@ -178,9 +178,8 @@ function InstallCard({ agentId }: { agentId: string }) {
 
   return (
     <div className="panel overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b border-edge bg-paper-sunk/50 px-5 py-3">
-        <CodeIcon className="h-4 w-4 text-volt" />
-        <span className="text-[13px] font-medium text-ink">Install on your site</span>
+      <div className="flex flex-wrap items-center gap-2 border-b border-edge px-5 py-3">
+        <span className="font-display text-[15px] font-bold text-ink">Install on your site</span>
         <CopyButton value={snippet} label="Copy snippet" className="ml-auto" />
       </div>
       <div className="p-5">
@@ -188,7 +187,7 @@ function InstallCard({ agentId }: { agentId: string }) {
           Paste this just before the closing <code className="font-mono text-volt">&lt;/body&gt;</code>{" "}
           tag on any page you want the agent to appear on.
         </p>
-        <pre className="overflow-x-auto rounded-xl border border-edge bg-paper p-4 font-mono text-[12px] leading-relaxed text-ink-muted">
+        <pre className="overflow-x-auto rounded-[var(--radius-control)] border border-edge bg-paper p-4 font-mono text-[12px] leading-relaxed text-ink-muted">
           <code>{snippet}</code>
         </pre>
       </div>

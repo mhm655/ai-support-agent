@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { streamChat } from "./chat";
+import { formatWait, streamChat } from "./chat";
 
 // Builds a fake fetch Response whose body is a ReadableStream emitting the
 // given raw SSE text, chunked exactly as passed in — this exercises the
@@ -110,5 +110,14 @@ describe("streamChat", () => {
         }),
       })
     );
+  });
+});
+
+describe("formatWait", () => {
+  it("keeps short waits in seconds and makes long ones readable", () => {
+    expect(formatWait(null)).toBe("");
+    expect(formatWait("30")).toBe(" Try again in 30s.");
+    expect(formatWait("600")).toBe(" Try again in 10 minutes.");
+    expect(formatWait("43200")).toBe(" Try again in 12 hours.");
   });
 });

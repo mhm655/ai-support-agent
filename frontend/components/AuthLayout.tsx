@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { BrandLink } from "@/components/Brand";
-import { CheckIcon } from "@/lib/icons";
-
-const PROOF = [
-  "Answers from documents you upload, not from a script you have to write",
-  "Captures the name and email when a visitor wants to book",
-  "Embeds on any site with a single line of HTML",
-];
 
 /*
- * Two-panel auth chrome: a brand rail that carries the landing page's
- * identity, and the form itself. On small screens the rail drops away
- * entirely — a marketing panel above a login form is just something to
- * scroll past on a phone.
+ * Two-column auth chrome in the landing page's poster voice.
+ *
+ * The rail carries one thing: the headline, set in the condensed poster
+ * type and anchored to the bottom. It used to hold that headline small plus
+ * three checkmarked selling points, which is the stock shape of a generated
+ * SaaS login and also pointless here: anyone on this page already knows
+ * what the product does.
+ *
+ * The form sits directly on the ground with no card around it. A card is
+ * for lifting one thing above others; on a page whose only job is the
+ * form, the box was decoration.
+ *
+ * On small screens the rail drops away entirely, since a marketing panel
+ * above a login form is just something to scroll past on a phone.
  */
 export default function AuthLayout({
   title,
@@ -21,62 +24,49 @@ export default function AuthLayout({
   footer,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: React.ReactNode;
   footer: React.ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
-      {/* Brand rail */}
-      <aside className="relative hidden overflow-hidden border-r border-edge bg-paper-raised lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <div className="relative">
-          <BrandLink />
-        </div>
-
-        <div className="relative max-w-md">
-          <h2 className="font-display text-[34px] font-extrabold leading-[1.1] tracking-[-0.03em]">
-            <span>Someone&apos;s always</span>
-            <br />
-            <span>at the desk.</span>
-            <br />
-            <span className="text-volt">Even at 2am.</span>
-          </h2>
-
-          <ul className="mt-9 flex flex-col gap-4">
-            {PROOF.map((item) => (
-              <li key={item} className="flex items-start gap-3 text-[15px] leading-relaxed text-ink-muted">
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-volt/15 text-volt"
-                >
-                  <CheckIcon className="h-3.5 w-3.5" />
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <p className="relative font-mono text-[11px] text-ink-faint">frontdesk.ai, a portfolio project</p>
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
+      <aside className="hidden border-r border-edge bg-paper-sunk lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <BrandLink />
+        <p
+          aria-hidden="true"
+          className="display-poster text-[clamp(3.5rem,8.5vw,8.5rem)] text-ink"
+        >
+          <span className="poster-line">
+            <span className="poster-in">Someone&apos;s</span>
+          </span>
+          <span className="poster-line">
+            <span className="poster-in">always at</span>
+          </span>
+          <span className="poster-line">
+            <span className="poster-in poster-in-2">the desk.</span>
+          </span>
+        </p>
       </aside>
 
-      {/* Form panel */}
-      <main className="relative flex flex-col items-center justify-center px-5 py-14 sm:px-8">
-        <div className="relative w-full max-w-sm">
-          <div className="mb-8 flex justify-center lg:hidden">
+      <main className="flex flex-col justify-center px-5 py-14 sm:px-12 lg:px-16">
+        <div className="w-full max-w-sm">
+          <div className="mb-14 lg:hidden">
             <BrandLink />
           </div>
 
-          <div className="panel p-7 sm:p-8">
-            <h1 className="font-display text-[22px] font-bold tracking-tight text-ink">{title}</h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{subtitle}</p>
-            {children}
-          </div>
+          <h1 className="display text-[2.5rem] text-ink">{title}</h1>
+          {subtitle && (
+            <p className="mt-3 text-[16px] leading-relaxed text-ink-muted">{subtitle}</p>
+          )}
+          {children}
 
-          <p className="mt-6 text-center text-sm text-ink-faint">{footer}</p>
+          <p className="mt-8 text-sm text-ink-muted">{footer}</p>
 
-          <p className="mt-8 text-center lg:hidden">
-            <Link href="/" className="focus-ring rounded text-xs text-ink-faint transition hover:text-ink-muted">
+          <p className="mt-12">
+            <Link
+              href="/"
+              className="focus-ring rounded text-[13px] text-ink-faint transition hover:text-ink-muted"
+            >
               ← Back to frontdesk.ai
             </Link>
           </p>

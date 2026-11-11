@@ -7,17 +7,7 @@ import { apiFetch } from "@/lib/api";
 import DashboardShell from "@/components/DashboardShell";
 import { ConfirmDialog, PromptDialog } from "@/components/Dialog";
 import { useToast } from "@/components/Toast";
-import {
-  ArrowLeftIcon,
-  ChatIcon,
-  ChartIcon,
-  ConversationIcon,
-  DocumentIcon,
-  PencilIcon,
-  SettingsIcon,
-  TrashIcon,
-  UserIcon,
-} from "@/lib/icons";
+import { ArrowLeftIcon } from "@/lib/icons";
 import { TABS, type Tab } from "./types";
 import TestChatTab from "./TestChatTab";
 import SettingsTab from "./SettingsTab";
@@ -25,15 +15,6 @@ import DocumentsTab from "./DocumentsTab";
 import LeadsTab from "./LeadsTab";
 import ConversationsTab from "./ConversationsTab";
 import AnalyticsTab from "./AnalyticsTab";
-
-const TAB_ICONS: Record<Tab, React.ComponentType<{ className?: string }>> = {
-  "Test chat": ChatIcon,
-  Settings: SettingsIcon,
-  Documents: DocumentIcon,
-  Leads: UserIcon,
-  Conversations: ConversationIcon,
-  Analytics: ChartIcon,
-};
 
 const slug = (t: Tab) => t.toLowerCase().replace(/\s+/g, "-");
 
@@ -109,52 +90,52 @@ export default function AgentDetailPage() {
         Your agents
       </Link>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         {agentName ? (
-          <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight text-ink sm:text-3xl">
-            {agentName}
-          </h1>
+          <h1 className="display text-[2.25rem] text-ink sm:text-[2.75rem]">{agentName}</h1>
         ) : (
-          <div className="skeleton h-8 w-56 rounded-lg bg-paper-raised" aria-hidden="true" />
+          <div className="skeleton h-11 w-64 rounded-[var(--radius-control)] bg-paper-sunk" aria-hidden="true" />
         )}
-        <span className="badge border border-edge bg-paper-sunk text-ink-faint">
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-good" />
-          live
-        </span>
-
-        <span className="ml-auto flex items-center gap-1">
+        {/* The "live" badge that sat here is gone: every agent showed it
+            whether or not it was embedded anywhere, so it was a decorative
+            dot rather than a state. */}
+        <span className="flex items-center gap-4 pb-1 text-[13px]">
           <button
             type="button"
             onClick={() => setRenaming(true)}
             disabled={!agentName}
-            aria-label="Rename agent"
-            className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink disabled:opacity-40"
+            className="focus-ring rounded text-ink-muted transition hover:text-ink disabled:opacity-40"
           >
-            <PencilIcon className="h-4 w-4" />
+            Rename
           </button>
           <button
             type="button"
             onClick={() => setDeleting(true)}
             disabled={!agentName}
-            aria-label="Delete agent"
-            className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-bad/10 hover:text-bad disabled:opacity-40"
+            className="focus-ring rounded text-ink-muted transition hover:text-bad disabled:opacity-40"
           >
-            <TrashIcon className="h-4 w-4" />
+            Delete
           </button>
         </span>
       </div>
 
-      {/* Segmented tab bar. Scrolls horizontally on narrow screens rather
-          than wrapping into a ragged second row. */}
-      <div className="mt-6 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+      {/* Underline tab bar, text only. Scrolls horizontally on narrow
+          screens rather than wrapping into a ragged second row. The pill
+          bar with an icon on every tab, active one filled blue, was the
+          stock component-library look. */}
+      {/* The hairline is an inset shadow on the tab list rather than a
+          border that the active tab overlaps with -mb-px: that 1px overlap
+          counted as vertical overflow in the scroll container and drew a
+          stray scrollbar arrow. The tab's own 2px underline paints over the
+          shadow, so the effect is the same. */}
+      <div className="mt-8 -mx-5 overflow-x-auto overflow-y-hidden px-5 sm:mx-0 sm:px-0">
         <div
           role="tablist"
           aria-label="Agent sections"
           onKeyDown={handleTabKeyDown}
-          className="inline-flex min-w-full gap-1 rounded-full border border-edge bg-panel p-1 sm:min-w-0"
+          className="flex w-max min-w-full gap-7 shadow-[inset_0_-1px_0_var(--color-edge)]"
         >
           {TABS.map((t) => {
-            const Icon = TAB_ICONS[t];
             const selected = tab === t;
             return (
               <button
@@ -168,11 +149,12 @@ export default function AgentDetailPage() {
                 aria-controls={`panel-${slug(t)}`}
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setTab(t)}
-                className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm whitespace-nowrap transition duration-200 ${
-                  selected ? "bg-volt font-medium text-white" : "text-ink-muted hover:bg-paper-raised/5 hover:text-ink"
+                className={`focus-ring shrink-0 border-b-2 pt-1 pb-3 text-[14px] whitespace-nowrap transition ${
+                  selected
+                    ? "border-volt font-medium text-ink"
+                    : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                <Icon className="h-4 w-4" />
                 {t}
               </button>
             );
@@ -189,7 +171,7 @@ export default function AgentDetailPage() {
         id={`panel-${slug(tab)}`}
         aria-labelledby={`tab-${slug(tab)}`}
         tabIndex={0}
-        className="focus-ring enter mt-6 rounded-2xl"
+        className="focus-ring enter mt-8 rounded-[var(--radius-control)]"
       >
         {tab === "Test chat" && <TestChatTab agentId={agentId} />}
         {tab === "Settings" && <SettingsTab agentId={agentId} />}

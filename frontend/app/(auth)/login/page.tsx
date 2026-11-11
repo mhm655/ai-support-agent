@@ -72,7 +72,6 @@ export default function LoginPage() {
   return (
     <AuthLayout
       title="Log in"
-      subtitle="Welcome back."
       footer={
         <>
           No account?{" "}

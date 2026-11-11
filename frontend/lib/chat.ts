@@ -12,6 +12,17 @@ export type ChatStreamHandlers = {
 // EventSource API can't be used here because it only supports GET
 // requests — we need POST to send the message body, so we read the
 // stream manually instead.
+// Retry-After is in seconds, and the per-agent daily limit can make it
+// hours: "Try again in 43200s" tells nobody anything. Mirrors formatWait in
+// public/widget.js, which cannot import this (it has no build step).
+export function formatWait(retryAfter: string | null): string {
+  const s = Number(retryAfter);
+  if (!s) return "";
+  if (s < 120) return ` Try again in ${s}s.`;
+  if (s < 7200) return ` Try again in ${Math.ceil(s / 60)} minutes.`;
+  return ` Try again in ${Math.ceil(s / 3600)} hours.`;
+}
+
 export async function streamChat(
   agentId: string,
   message: string,
@@ -39,8 +50,7 @@ export async function streamChat(
       .json()
       .then((body) => body?.detail as string | undefined)
       .catch(() => undefined);
-    const wait = retryAfter ? ` Try again in ${retryAfter}s.` : "";
-    handlers.onError?.((detail || "Too many messages. Please slow down.") + wait);
+    handlers.onError?.((detail || "Too many messages. Please slow down.") + formatWait(retryAfter));
     handlers.onDone?.();
     return;
   }

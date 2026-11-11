@@ -7,7 +7,7 @@ import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
 import { ConfirmDialog } from "@/components/Dialog";
 import { useToast } from "@/components/Toast";
-import { DocumentIcon, SpinnerIcon, TrashIcon, UploadIcon } from "@/lib/icons";
+import { SpinnerIcon, UploadIcon } from "@/lib/icons";
 import type { Document } from "./types";
 
 const ACCEPT = ".pdf,.txt,.md";
@@ -148,7 +148,10 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
 
   return (
     <div>
-      <form onSubmit={handleUpload} className="mb-6">
+      <form onSubmit={handleUpload} className="mb-8">
+        {/* A drop target has to be a visible area, so this keeps its dashed
+            edge, but as a slim bar at the control radius rather than a big
+            rounded box with an icon tile in the middle. */}
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -156,53 +159,55 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          className={`rounded-2xl border border-dashed p-6 text-center transition duration-200 ${
-            dragging ? "scale-[1.01] border-volt bg-volt/[0.07]" : "border-edge bg-paper-raised/40"
+          className={`flex flex-col gap-4 rounded-[var(--radius-control)] border border-dashed px-5 py-5 transition duration-200 focus-within:ring-2 focus-within:ring-volt/60 sm:flex-row sm:items-center ${
+            dragging ? "border-volt bg-volt/[0.06]" : "border-edge-strong"
           }`}
         >
-          <span
-            aria-hidden="true"
-            className={`mx-auto grid h-11 w-11 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt transition ${
-              dragging ? "-translate-y-0.5" : ""
-            }`}
-          >
-            <UploadIcon className="h-5 w-5" />
-          </span>
-
           {/* The input is visually hidden but still the real, focusable
-              control — the label picks up its focus ring via `peer`, which
-              only works if the input precedes it in the DOM. */}
+              control. Its focus shows on the whole drop zone through
+              focus-within. This used to be a `peer-focus-visible` ring on
+              the label, which never worked: `peer` only reaches siblings,
+              and the label sat inside a <p>, so keyboard users got no
+              focus indicator at all. */}
           <input
             id="document-upload"
             ref={fileInputRef}
             type="file"
             accept={ACCEPT}
             onChange={(e) => setSelectedName(e.target.files?.[0]?.name ?? null)}
-            className="peer sr-only"
+            className="sr-only"
           />
 
-          <p className="mt-4 text-sm text-ink">
-            <label
-              htmlFor="document-upload"
-              className="cursor-pointer rounded px-1 font-medium text-volt underline decoration-volt/40 underline-offset-4 hover:text-volt peer-focus-visible:ring-2 peer-focus-visible:ring-volt/60"
-            >
-              Choose a file
-            </label>{" "}
-            <span className="text-ink-muted">or drag it here</span>
+          <p className="flex-1 text-[15px] text-ink-muted">
+            {selectedName ? (
+              <span className="font-medium text-ink">{selectedName}</span>
+            ) : (
+              <>
+                Drop a PDF, .txt or .md file here, or{" "}
+                <label
+                  htmlFor="document-upload"
+                  className="cursor-pointer rounded font-medium text-volt underline decoration-volt/40 underline-offset-4"
+                >
+                  choose one
+                </label>
+                .
+              </>
+            )}
           </p>
-          <p className="mt-1 font-mono text-[11px] text-ink-faint">PDF, .txt or .md</p>
 
           {selectedName && (
-            <div className="enter mt-5 flex flex-wrap items-center justify-center gap-3">
-              <span className="badge border border-edge bg-paper-sunk text-ink-muted">
-                <DocumentIcon className="h-3.5 w-3.5" />
-                {selectedName}
-              </span>
-              <button type="submit" disabled={uploading} className="btn btn-primary px-4 py-2 text-xs">
+            <span className="flex items-center gap-4">
+              <label
+                htmlFor="document-upload"
+                className="cursor-pointer rounded text-[13px] text-ink-muted transition hover:text-ink"
+              >
+                Change
+              </label>
+              <button type="submit" disabled={uploading} className="btn btn-primary px-5 py-2 text-[14px]">
                 {uploading ? <SpinnerIcon className="h-3.5 w-3.5" /> : <UploadIcon className="h-3.5 w-3.5" />}
                 {uploading ? "Uploading…" : "Upload"}
               </button>
-            </div>
+            </span>
           )}
         </div>
       </form>
@@ -216,40 +221,28 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
       {loading ? (
         <div className="flex flex-col gap-2">
           {[0, 1].map((i) => (
-            <Skeleton key={i} className="h-[68px]" />
+            <Skeleton key={i} className="h-[60px]" />
           ))}
         </div>
       ) : documents.length === 0 ? (
         <EmptyState
-          icon={<DocumentIcon className="h-5 w-5" />}
           title="No documents yet"
           description="Upload your hours, pricing, or policies. Everything the agent says comes from what you put here."
         />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {documents.map((doc, i) => (
-            <li
-              key={doc.id}
-              className="panel enter flex items-center gap-4 p-4"
-              style={{ animationDelay: `${i * 45}ms` }}
-            >
-              <span
-                aria-hidden="true"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-ink-muted"
-              >
-                <DocumentIcon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-ink">{doc.filename}</p>
-                <StatusBadge status={doc.status} />
+        <ul className="divide-y divide-edge border-y border-edge">
+          {documents.map((doc) => (
+            <li key={doc.id} className="flex items-center gap-6 px-1 py-4">
+              <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-4 gap-y-1">
+                <p className="truncate text-[15px] font-medium text-ink">{doc.filename}</p>
+                <StatusLabel status={doc.status} />
               </div>
               <button
                 onClick={() => setPendingDelete(doc)}
                 aria-label={`Delete ${doc.filename}`}
-                className="btn btn-danger shrink-0 px-3 py-1.5 text-xs"
+                className="focus-ring shrink-0 rounded text-[13px] text-ink-muted transition hover:text-bad"
               >
-                <TrashIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Delete</span>
+                Delete
               </button>
             </li>
           ))}
@@ -269,24 +262,22 @@ export default function DocumentsTab({ agentId }: { agentId: string }) {
 }
 
 /*
- * The dot carries the state as much as the color does, so the badge is still
- * readable if the hue is hard to distinguish — and "pending" pulses, which
- * tells you the 3s poll is still watching without needing a spinner.
+ * Processing state is real state, which is the one case a coloured dot is
+ * for. The word carries it as much as the colour does, so it still reads if
+ * the hue is hard to tell apart, and "processing" pulses to show the 3s
+ * poll is still watching without needing a spinner.
  */
-function StatusBadge({ status }: { status: string }) {
+function StatusLabel({ status }: { status: string }) {
   const done = status === "done";
   const failed = status === "failed";
-  const tone = done
-    ? "border-good/25 bg-good/10 text-good"
-    : failed
-      ? "border-bad/25 bg-bad/10 text-bad"
-      : "border-volt/25 bg-volt/10 text-volt";
+  const tone = done ? "text-good" : failed ? "text-bad" : "text-volt";
   const dot = done ? "bg-good" : failed ? "bg-bad" : "bg-volt animate-pulse";
+  const label = done ? "Ready" : failed ? "Failed" : "Processing";
 
   return (
-    <span className={`badge mt-1 border ${tone}`}>
+    <span className={`inline-flex items-center gap-1.5 text-[13px] ${tone}`}>
       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-      {done ? "ready" : status}
+      {label}
     </span>
   );
 }

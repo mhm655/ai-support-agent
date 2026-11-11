@@ -1,31 +1,25 @@
 /*
- * Shared "nothing here yet" panel. Every list in the dashboard needs one,
+ * Shared "nothing here yet" block. Every list in the dashboard needs one,
  * and they should look identical rather than each drifting.
+ *
+ * Plain and left-aligned under a hairline, the way the lists it stands in
+ * for are laid out. It used to be a dashed box with a centred icon tile,
+ * the stock empty state of every generated dashboard.
  */
 export default function EmptyState({
-  icon,
   title,
   description,
   action,
 }: {
-  icon?: React.ReactNode;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-edge bg-paper-raised/40 px-6 py-14 text-center">
-      {icon && (
-        <span
-          aria-hidden="true"
-          className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl border border-edge bg-paper-sunk text-volt"
-        >
-          {icon}
-        </span>
-      )}
-      <p className="font-display text-base font-bold text-ink">{title}</p>
-      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-ink-faint">{description}</p>
-      {action && <div className="mt-5 flex justify-center">{action}</div>}
+    <div className="border-t border-edge py-10">
+      <p className="font-display text-[20px] font-bold text-ink">{title}</p>
+      <p className="mt-2 max-w-md text-[15px] leading-relaxed text-ink-muted">{description}</p>
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }

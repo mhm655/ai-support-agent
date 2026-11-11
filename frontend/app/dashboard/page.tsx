@@ -11,16 +11,7 @@ import Skeleton from "@/components/Skeleton";
 import { FormError } from "@/components/FormField";
 import { ConfirmDialog, PromptDialog } from "@/components/Dialog";
 import { useToast } from "@/components/Toast";
-import {
-  ArrowRightIcon,
-  ChatIcon,
-  CodeIcon,
-  DocumentIcon,
-  PencilIcon,
-  PlusIcon,
-  SpinnerIcon,
-  TrashIcon,
-} from "@/lib/icons";
+import { PlusIcon, SpinnerIcon } from "@/lib/icons";
 
 type Agent = {
   id: string;
@@ -129,12 +120,11 @@ export default function DashboardPage() {
   return (
     <DashboardShell>
       <PageHeading
-        eyebrow="Workspace"
         title="Your agents"
         description="Each agent keeps its own knowledge base and answers as a separate assistant."
       />
 
-      <form onSubmit={handleCreateAgent} className="panel mt-8 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+      <form onSubmit={handleCreateAgent} className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         <label htmlFor="new-agent-name" className="sr-only">
           New agent name
         </label>
@@ -158,32 +148,28 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-10">
         {loading ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {[0, 1].map((i) => (
-              <Skeleton key={i} className="h-[104px]" />
+          <div className="flex flex-col gap-2 border-t border-edge pt-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-[72px]" />
             ))}
           </div>
         ) : agents.length === 0 ? (
           <GettingStarted />
         ) : (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {agents.map((agent, i) => (
+          // A divided list rather than a grid of shadowed cards: every row
+          // is the same kind of thing, so nothing needs lifting above the
+          // rest, and a list scans top to bottom where a two-column grid
+          // makes the eye zigzag.
+          <ul className="divide-y divide-edge border-y border-edge">
+            {agents.map((agent) => (
               <li
                 key={agent.id}
-                className="panel enter group relative flex items-center gap-4 p-5 transition duration-200 hover:border-volt/40 hover:bg-paper-sunk/60 focus-within:border-volt/40"
-                style={{ animationDelay: `${i * 45}ms` }}
+                className="group relative flex items-center gap-6 px-1 py-5 transition hover:bg-paper-sunk/60 focus-within:bg-paper-sunk/60"
               >
-                <span
-                  aria-hidden="true"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-volt/25 bg-volt/10 font-display text-base font-bold text-volt"
-                >
-                  {agent.name.trim().charAt(0).toUpperCase() || "?"}
-                </span>
-
                 <span className="min-w-0 flex-1">
-                  {/* Stretched link: the whole card is the click target, but
+                  {/* Stretched link: the whole row is the click target, but
                       the anchor stays a plain link with the row actions
                       layered above it — nesting buttons inside an <a> would
                       be invalid and unusable by keyboard. */}
@@ -191,34 +177,32 @@ export default function DashboardPage() {
                     href={`/dashboard/agents/${agent.id}`}
                     className="focus-ring rounded before:absolute before:inset-0 before:content-['']"
                   >
-                    <span className="block truncate font-medium text-ink">{agent.name}</span>
+                    <span className="block truncate font-display text-[20px] font-bold text-ink transition group-hover:text-volt">
+                      {agent.name}
+                    </span>
                   </Link>
-                  <span className="block font-mono text-[11px] text-ink-faint">
+                  <span className="mt-0.5 block text-[13px] text-ink-faint">
                     Created {new Date(agent.created_at).toLocaleDateString()}
                   </span>
                 </span>
 
-                <span className="relative z-10 flex shrink-0 items-center gap-1">
+                <span className="relative z-10 flex shrink-0 items-center gap-4 text-[13px]">
                   <button
                     type="button"
                     onClick={() => setRenaming(agent)}
                     aria-label={`Rename ${agent.name}`}
-                    className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-paper-raised/5 hover:text-ink"
+                    className="focus-ring rounded text-ink-muted transition hover:text-ink"
                   >
-                    <PencilIcon className="h-4 w-4" />
+                    Rename
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeleting(agent)}
                     aria-label={`Delete ${agent.name}`}
-                    className="focus-ring rounded-lg p-2 text-ink-faint transition hover:bg-bad/10 hover:text-bad"
+                    className="focus-ring rounded text-ink-muted transition hover:text-bad"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    Delete
                   </button>
-                  <ArrowRightIcon
-                    aria-hidden="true"
-                    className="ml-1 h-4 w-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-volt"
-                  />
                 </span>
               </li>
             ))}
@@ -252,17 +236,14 @@ export default function DashboardPage() {
 
 const STEPS = [
   {
-    icon: PlusIcon,
     title: "Create an agent",
     body: "Name it above. Most businesses only ever need one.",
   },
   {
-    icon: DocumentIcon,
     title: "Upload a document",
     body: "Your hours, prices, or policies as a PDF, .txt or .md. Everything it says comes from here.",
   },
   {
-    icon: CodeIcon,
     title: "Paste one line on your site",
     body: "The agent's Settings tab gives you the script tag, filled in and ready to copy.",
   },
@@ -274,28 +255,20 @@ const STEPS = [
  * the step that actually makes the product work — which is the single
  * thing most likely to leave someone with an agent that answers "I don't
  * know" to everything.
+ *
+ * An ordered list is already numbered by its order; the 01/02/03 tiles
+ * that used to sit beside each step said the same thing louder.
  */
 function GettingStarted() {
   return (
-    <div className="panel overflow-hidden">
-      <div className="flex items-center gap-2.5 border-b border-edge bg-paper-sunk/50 px-5 py-3.5">
-        <ChatIcon className="h-4 w-4 text-volt" />
-        <span className="text-[13px] font-medium text-ink">Getting started</span>
-        <span className="ml-auto font-mono text-[11px] text-ink-faint">about 5 minutes</span>
-      </div>
-      <ol className="divide-y divide-edge">
-        {STEPS.map((step, i) => (
-          <li key={step.title} className="flex items-start gap-4 p-5">
-            <span
-              aria-hidden="true"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk font-mono text-[12px] text-volt"
-            >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <div>
-              <h3 className="font-display text-[15px] font-bold tracking-tight text-ink">{step.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-ink-muted">{step.body}</p>
-            </div>
+    <div className="border-t border-edge pt-8">
+      <p className="font-display text-[20px] font-bold text-ink">Getting started</p>
+      <p className="mt-1 text-[14px] text-ink-faint">About five minutes.</p>
+      <ol className="mt-6 flex flex-col gap-6">
+        {STEPS.map((step) => (
+          <li key={step.title} className="max-w-lg">
+            <h3 className="text-[16px] font-semibold text-ink">{step.title}</h3>
+            <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">{step.body}</p>
           </li>
         ))}
       </ol>
