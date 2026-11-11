@@ -229,17 +229,63 @@ def _save_message(conversation_id: str, role: str, content: str) -> None:
     ).execute()
 
 
-def _capture_lead(agent_id: str, conversation_id: str, args: dict) -> None:
-    get_supabase().table("leads").insert(
-        {
-            "agent_id": agent_id,
-            "conversation_id": conversation_id,
-            "name": args.get("name"),
-            "email": args.get("email"),
-            "phone": args.get("phone"),
-            "interest": args.get("interest"),
-        }
+# Longest value kept per lead field. Generous for any real name, address or
+# phone number, and small enough that a lead cannot carry an essay.
+LEAD_FIELD_LIMITS = {"name": 200, "email": 320, "phone": 50, "interest": 500}
+
+
+def _clean_lead(args: dict) -> dict | None:
+    """
+    The tool call's arguments reduced to something safe to store and email.
+
+    These arguments are written by the model, and the model is steered by
+    the visitor, so they are untrusted input exactly like a form post:
+    nothing guarantees they are strings, or short, or present. Anything
+    that is not a non-empty string is dropped and the rest is trimmed to a
+    fixed length.
+
+    Returns None when no way to contact the person survived: the tool is
+    meant to be called only with a name or an email, and a "lead" with
+    neither is noise in the owner's list and a pointless email.
+    """
+    lead = {}
+    for key, limit in LEAD_FIELD_LIMITS.items():
+        value = args.get(key)
+        if isinstance(value, str) and value.strip():
+            lead[key] = value.strip()[:limit]
+    if not any(lead.get(k) for k in ("name", "email", "phone")):
+        return None
+    return lead
+
+
+def _capture_lead(agent_id: str, conversation_id: str, lead: dict) -> bool:
+    """
+    Saves the lead, one per conversation. Returns True only when it is new.
+
+    One per conversation because the model decides afresh on every message,
+    and a visitor can simply ask it to call the tool again. Inserting each
+    time turned one conversation into as many leads, and one notification
+    email to the owner, as the visitor cared to send messages: an inbox
+    flood aimed at the business, sent from this platform. A second call in
+    the same conversation now updates the existing row instead, which is
+    also what a genuine visitor correcting their email address wants.
+    """
+    supabase = get_supabase()
+    existing = (
+        supabase.table("leads")
+        .select("id")
+        .eq("conversation_id", conversation_id)
+        .limit(1)
+        .execute()
+    )
+    if existing.data:
+        supabase.table("leads").update(lead).eq("id", existing.data[0]["id"]).execute()
+        return False
+
+    supabase.table("leads").insert(
+        {"agent_id": agent_id, "conversation_id": conversation_id, **lead}
     ).execute()
+    return True
 
 
 def _to_contents(history: list[dict]) -> list[types.Content]:
@@ -307,15 +353,19 @@ def stream_chat_response(
             ),
         )
 
-        for call in decision.function_calls or []:
-            if call.name == "capture_lead":
-                args = call.args or {}
-                # Saved first, notified second, and in that order on purpose:
-                # the row is what the dashboard reads, so a failure to send
-                # costs a notification rather than a lead.
-                _capture_lead(agent["id"], conversation_id, args)
-                notify_lead_captured(agent, args)
-                yield f"event: lead_captured\ndata: {json.dumps(args)}\n\n"
+        # At most one capture per turn: a model answering several
+        # capture_lead calls at once would otherwise fan out the same way.
+        lead_call = next(
+            (c for c in decision.function_calls or [] if c.name == "capture_lead"), None
+        )
+        lead = _clean_lead(lead_call.args or {}) if lead_call else None
+        if lead:
+            # Saved first, notified second, and in that order on purpose:
+            # the row is what the dashboard reads, so a failure to send
+            # costs a notification rather than a lead.
+            if _capture_lead(agent["id"], conversation_id, lead):
+                notify_lead_captured(agent, lead)
+            yield f"event: lead_captured\ndata: {json.dumps(lead)}\n\n"
 
         # Pass 2: stream the actual reply
         full_reply = ""

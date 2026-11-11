@@ -20,9 +20,19 @@ class Settings(BaseSettings):
     # damage a scraped agent_id can do, and 60/minute is well above real
     # traffic for a small business while bounding spend.
     #
-    # Set either to 0 to disable that limit.
+    # The daily per-agent ceiling exists because the per-minute one does not
+    # bound a day: 60/minute is 86,400 messages in 24 hours. And the Gemini
+    # key is the platform's, shared by every business, so one scraped
+    # agent_id looping just under the minute limit would exhaust the daily
+    # quota for all of them -- one tenant's widget taking every other
+    # tenant's chat down. This caps any single agent's share. 300 is well
+    # above what a small business's widget sees in a day; raise it for an
+    # agent that genuinely needs more once the quota allows.
+    #
+    # Set any of these to 0 to disable that limit.
     public_chat_per_ip_per_minute: int = 8
     public_chat_per_agent_per_minute: int = 60
+    public_chat_per_agent_per_day: int = 300
 
     # How many uvicorn worker processes / Railway replicas this deployment
     # actually runs. Not auto-detected: a worker can't see its siblings

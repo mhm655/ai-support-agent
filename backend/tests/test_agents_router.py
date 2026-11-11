@@ -44,7 +44,7 @@ def test_get_agent_404s_when_not_owned_by_this_business(authed_client, monkeypat
     # filter means the query legitimately returns no rows.
     monkeypatch.setattr(agents_router, "get_supabase", lambda: make_supabase_mock([]))
 
-    res = authed_client.get("/agents/some-other-business-agent")
+    res = authed_client.get("/agents/99999999-9999-4999-8999-999999999999")
 
     assert res.status_code == 404
 
@@ -52,7 +52,7 @@ def test_get_agent_404s_when_not_owned_by_this_business(authed_client, monkeypat
 def test_update_agent_with_no_fields_is_rejected(authed_client, monkeypatch):
     monkeypatch.setattr(agents_router, "get_supabase", lambda: make_supabase_mock([AGENT]))
 
-    res = authed_client.patch("/agents/agent-1", json={})
+    res = authed_client.patch("/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", json={})
 
     assert res.status_code == 400
 
@@ -61,7 +61,7 @@ def test_update_agent_applies_partial_update(authed_client, monkeypatch):
     updated = {**AGENT, "name": "Renamed Bot"}
     monkeypatch.setattr(agents_router, "get_supabase", lambda: make_supabase_mock([updated]))
 
-    res = authed_client.patch("/agents/agent-1", json={"name": "Renamed Bot"})
+    res = authed_client.patch("/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", json={"name": "Renamed Bot"})
 
     assert res.status_code == 200
     assert res.json()["name"] == "Renamed Bot"
@@ -77,7 +77,7 @@ def test_update_agent_clears_a_nullable_field_when_sent_as_null(authed_client, m
     monkeypatch.setattr(agents_router, "get_supabase", lambda: mock)
 
     res = authed_client.patch(
-        "/agents/agent-1",
+        "/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
         json={"personality": None, "instructions": "Answer from the uploaded docs only."},
     )
 
@@ -93,7 +93,7 @@ def test_update_agent_ignores_fields_that_were_not_sent(authed_client, monkeypat
     mock = make_supabase_mock([AGENT])
     monkeypatch.setattr(agents_router, "get_supabase", lambda: mock)
 
-    res = authed_client.patch("/agents/agent-1", json={"name": "Renamed Bot"})
+    res = authed_client.patch("/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", json={"name": "Renamed Bot"})
 
     assert res.status_code == 200
     assert mock.update.call_args[0][0] == {"name": "Renamed Bot"}
@@ -102,7 +102,7 @@ def test_update_agent_ignores_fields_that_were_not_sent(authed_client, monkeypat
 def test_delete_agent_404s_when_not_found(authed_client, monkeypatch):
     monkeypatch.setattr(agents_router, "get_supabase", lambda: make_supabase_mock([]))
 
-    res = authed_client.delete("/agents/agent-1")
+    res = authed_client.delete("/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 
     assert res.status_code == 404
 
@@ -110,6 +110,6 @@ def test_delete_agent_404s_when_not_found(authed_client, monkeypatch):
 def test_delete_agent_succeeds(authed_client, monkeypatch):
     monkeypatch.setattr(agents_router, "get_supabase", lambda: make_supabase_mock([AGENT]))
 
-    res = authed_client.delete("/agents/agent-1")
+    res = authed_client.delete("/agents/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 
     assert res.status_code == 204

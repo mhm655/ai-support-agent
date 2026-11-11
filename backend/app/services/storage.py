@@ -1,8 +1,25 @@
+import re
 import uuid
 
 from app.core.supabase_client import get_supabase
 
 BUCKET = "documents"
+
+
+def _safe_name(filename: str) -> str:
+    """
+    The uploaded filename reduced to characters that are inert in a path.
+
+    The name comes straight from the uploader's multipart header, and used
+    to be pasted into the object path as-is. A name like
+    "../../<another-agent-id>/x.pdf" then contained real path segments,
+    which walks out of this agent's folder if the storage layer normalises
+    them; any other unusual character made Storage reject the upload and
+    surfaced as a 500. Slashes become underscores, so the result is always
+    exactly one path segment. The original name is kept in the documents
+    row for display, so nothing the user sees changes.
+    """
+    return re.sub(r"[^A-Za-z0-9._-]", "_", filename)[-100:] or "file"
 
 
 def upload_document(agent_id: str, filename: str, content: bytes) -> str:
@@ -18,7 +35,7 @@ def upload_document(agent_id: str, filename: str, content: bytes) -> str:
     supabase = get_supabase()
     # A random prefix avoids overwriting a file if two uploads share a
     # filename for the same agent.
-    storage_path = f"{agent_id}/{uuid.uuid4()}-{filename}"
+    storage_path = f"{agent_id}/{uuid.uuid4()}-{_safe_name(filename)}"
     supabase.storage.from_(BUCKET).upload(
         storage_path,
         content,

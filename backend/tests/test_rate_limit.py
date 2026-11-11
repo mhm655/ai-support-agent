@@ -93,18 +93,42 @@ def test_limit_of_zero_is_handled_by_the_caller_not_the_limiter():
 # --- client address extraction ---------------------------------------------
 
 
-def test_client_ip_prefers_forwarded_header():
-    request = _request({"X-Forwarded-For": "203.0.113.7, 70.41.3.18"})
+def test_client_ip_uses_railways_real_ip_header():
+    request = _request({"X-Real-IP": "203.0.113.7"}, host="10.0.0.1")
     assert client_ip(request) == "203.0.113.7"
+
+
+def test_client_ip_ignores_forged_forwarded_for():
+    """
+    X-Forwarded-For's first entry is whatever the client typed. Trusting
+    it let every request claim a fresh address and walk past the per-IP
+    limit, so it must have no effect on the key at all.
+    """
+    forged = _request({"X-Forwarded-For": "6.6.6.6", "X-Real-IP": "203.0.113.7"})
+    assert client_ip(forged) == "203.0.113.7"
+
+    no_proxy = _request({"X-Forwarded-For": "6.6.6.6"}, host="9.9.9.9")
+    assert client_ip(no_proxy) == "9.9.9.9"
 
 
 def test_client_ip_falls_back_to_socket_peer():
     assert client_ip(_request(host="9.9.9.9")) == "9.9.9.9"
 
 
-def test_client_ip_ignores_empty_forwarded_header():
-    request = _request({"X-Forwarded-For": ""}, host="9.9.9.9")
+def test_client_ip_ignores_empty_real_ip_header():
+    request = _request({"X-Real-IP": " "}, host="9.9.9.9")
     assert client_ip(request) == "9.9.9.9"
+
+
+def test_forged_forwarded_for_cannot_evade_the_ip_limit(reset_limiters):
+    from fastapi import HTTPException
+
+    from app.api.routers import public_chat
+
+    with pytest.raises(HTTPException) as excinfo:
+        for i in range(public_chat._ip_limiter.limit + 1):
+            _enforce_both(AGENT, _request({"X-Forwarded-For": f"203.0.113.{i}"}))
+    assert "from your network" in excinfo.value.detail
 
 
 # --- route integration -----------------------------------------------------
@@ -128,11 +152,32 @@ def _enforce_both(agent_id, request):
 def reset_limiters():
     from app.api.routers import public_chat
 
-    public_chat._ip_limiter.reset()
-    public_chat._agent_limiter.reset()
+    limiters = (public_chat._ip_limiter, public_chat._agent_limiter, public_chat._agent_daily_limiter)
+    for limiter in limiters:
+        limiter.reset()
     yield
-    public_chat._ip_limiter.reset()
-    public_chat._agent_limiter.reset()
+    for limiter in limiters:
+        limiter.reset()
+
+
+def test_daily_agent_limit_caps_a_slow_steady_drain(reset_limiters):
+    """
+    A caller who stays under the per-minute limit forever is exactly what
+    the per-minute limit cannot stop, and on a shared Gemini key it drains
+    the quota for every business on the platform.
+    """
+    from fastapi import HTTPException
+
+    from app.api.routers import public_chat
+
+    daily = public_chat._agent_daily_limiter
+    with patch.object(daily, "limit", 3):
+        for _ in range(3):
+            daily.check(AGENT)
+        with pytest.raises(HTTPException) as excinfo:
+            public_chat._enforce_agent_limit(AGENT)
+    assert excinfo.value.status_code == 429
+    assert "today" in excinfo.value.detail
 
 
 def test_route_raises_429_with_retry_after(reset_limiters):
@@ -173,18 +218,18 @@ def test_different_visitors_are_limited_separately(reset_limiters):
     from app.api.routers import public_chat
 
     for _ in range(public_chat._ip_limiter.limit):
-        _enforce_both(AGENT, _request({"X-Forwarded-For": "1.1.1.1"}))
+        _enforce_both(AGENT, _request({"X-Real-IP": "1.1.1.1"}))
 
     # A second visitor on the same agent is unaffected, as long as the
     # per-agent ceiling is higher than the per-IP one.
-    _enforce_both(AGENT, _request({"X-Forwarded-For": "2.2.2.2"}))
+    _enforce_both(AGENT, _request({"X-Real-IP": "2.2.2.2"}))
 
 
 def test_agent_limit_catches_a_distributed_flood(reset_limiters):
     """
     Spreading requests across many source addresses evades the per-IP
     limit. The per-agent limit is what still caps the owner's quota spend,
-    and unlike X-Forwarded-For it cannot be forged.
+    and unlike a source address it cannot be varied by the caller.
     """
     from fastapi import HTTPException
 
@@ -194,7 +239,7 @@ def test_agent_limit_catches_a_distributed_flood(reset_limiters):
 
     with pytest.raises(HTTPException) as excinfo:
         for i in range(agent_limit + 5):
-            _enforce_both(AGENT, _request({"X-Forwarded-For": f"10.0.0.{i}"}))
+            _enforce_both(AGENT, _request({"X-Real-IP": f"10.0.0.{i}"}))
 
     assert excinfo.value.status_code == 429
     assert "for this agent" in excinfo.value.detail

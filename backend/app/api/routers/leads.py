@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
+from app.core.ids import UUIDPath
 from app.core.security import CurrentBusinessIdDep
 from app.core.supabase_client import get_supabase
 from app.schemas.lead import LeadResponse
@@ -22,7 +23,7 @@ def _assert_owns_agent(agent_id: str, business_id: str) -> None:
 
 
 @router.get("/agents/{agent_id}/leads", response_model=list[LeadResponse])
-async def list_leads(agent_id: str, business_id: CurrentBusinessIdDep) -> list[LeadResponse]:
+async def list_leads(agent_id: UUIDPath, business_id: CurrentBusinessIdDep) -> list[LeadResponse]:
     _assert_owns_agent(agent_id, business_id)
     supabase = get_supabase()
     result = (

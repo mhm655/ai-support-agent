@@ -15,6 +15,7 @@ router = APIRouter(prefix="/public", tags=["public-chat"])
 # core/rate_limit.py for the per-process caveat.
 _ip_limiter = SlidingWindowLimiter(settings.public_chat_per_ip_per_minute, 60.0)
 _agent_limiter = SlidingWindowLimiter(settings.public_chat_per_agent_per_minute, 60.0)
+_agent_daily_limiter = SlidingWindowLimiter(settings.public_chat_per_agent_per_day, 86_400.0)
 
 
 def _enforce_limit(limiter: SlidingWindowLimiter, key: str, scope: str) -> None:
@@ -44,6 +45,10 @@ def _enforce_ip_limit(request: Request) -> None:
 
 def _enforce_agent_limit(agent_id: str) -> None:
     _enforce_limit(_agent_limiter, agent_id, "for this agent")
+    # Checked second, so a burst that the minute limit refuses does not
+    # also use up the day's allowance. A request is only recorded against
+    # a window once it has passed every limit before it.
+    _enforce_limit(_agent_daily_limiter, agent_id, "for this agent today")
 
 
 def _not_found(detail: str) -> HTTPException:

@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, status
 
+from app.core.ids import UUIDPath
 from app.core.security import CurrentBusinessIdDep
 from app.core.supabase_client import get_supabase
 from app.schemas.document import DocumentResponse
@@ -15,6 +16,8 @@ router = APIRouter(tags=["documents"])
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB — generous for text/PDF docs, keeps costs predictable
 UPLOAD_READ_CHUNK = 1024 * 1024
+ALLOWED_EXTENSIONS = (".pdf", ".txt", ".md")  # must match document_parsing.extract_text
+MAX_FILENAME_LENGTH = 255
 
 
 def _assert_owns_agent(agent_id: str, business_id: str) -> None:
@@ -37,12 +40,28 @@ def _assert_owns_agent(agent_id: str, business_id: str) -> None:
     status_code=status.HTTP_201_CREATED,
 )
 async def upload_agent_document(
-    agent_id: str,
+    agent_id: UUIDPath,
     file: UploadFile,
     background_tasks: BackgroundTasks,
     business_id: CurrentBusinessIdDep,
 ) -> DocumentResponse:
     _assert_owns_agent(agent_id, business_id)
+
+    # Checked here, before anything is read or stored. Parsing (which also
+    # checks the type) runs later in a background task, so an .exe or .html
+    # used to be accepted with a 201, written to the storage bucket, and
+    # only then marked "failed" -- the bucket kept whatever was sent.
+    filename = (file.filename or "").strip()
+    if not filename.lower().endswith(ALLOWED_EXTENSIONS):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file type. Upload a PDF, .txt, or .md file.",
+        )
+    if len(filename) > MAX_FILENAME_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File name too long (max {MAX_FILENAME_LENGTH} characters).",
+        )
 
     # Read incrementally and stop at the limit, rather than pulling the
     # whole upload into one bytes object and measuring it afterwards --
@@ -65,7 +84,7 @@ async def upload_agent_document(
         parts.append(data)
     content = b"".join(parts)
 
-    storage_path = upload_document(agent_id, file.filename, content)
+    storage_path = upload_document(agent_id, filename, content)
 
     supabase = get_supabase()
     result = (
@@ -73,7 +92,7 @@ async def upload_agent_document(
         .insert(
             {
                 "agent_id": agent_id,
-                "filename": file.filename,
+                "filename": filename,
                 "storage_path": storage_path,
                 "status": "pending",
             }
@@ -85,13 +104,13 @@ async def upload_agent_document(
     # Returns to the caller immediately; embedding happens after the
     # response is sent. The frontend should poll GET /documents to see
     # the status flip from "pending" to "done" (or "failed").
-    background_tasks.add_task(process_document, document["id"], file.filename, content)
+    background_tasks.add_task(process_document, document["id"], filename, content)
 
     return document
 
 
 @router.get("/agents/{agent_id}/documents", response_model=list[DocumentResponse])
-async def list_agent_documents(agent_id: str, business_id: CurrentBusinessIdDep) -> list[DocumentResponse]:
+async def list_agent_documents(agent_id: UUIDPath, business_id: CurrentBusinessIdDep) -> list[DocumentResponse]:
     _assert_owns_agent(agent_id, business_id)
     supabase = get_supabase()
     result = (
@@ -105,7 +124,7 @@ async def list_agent_documents(agent_id: str, business_id: CurrentBusinessIdDep)
 
 
 @router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_document(document_id: str, business_id: CurrentBusinessIdDep) -> None:
+async def delete_document(document_id: UUIDPath, business_id: CurrentBusinessIdDep) -> None:
     supabase = get_supabase()
     # Ownership check via join: does this document belong to an agent
     # that belongs to this business?

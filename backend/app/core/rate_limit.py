@@ -149,19 +149,28 @@ def client_ip(request: Request) -> str:
     Best-effort client address.
 
     Railway terminates TLS and proxies, so `request.client.host` is the
-    proxy and every visitor looks like one address. The first entry of
-    X-Forwarded-For is the original client.
+    proxy and every visitor looks like one address. Railway's edge sets
+    X-Real-IP to the caller's address -- the header its networking docs
+    name for exactly this ("Specs & Limits" > Request Headers).
 
-    Caveat worth stating: X-Forwarded-For is client-supplied and can be
-    spoofed unless the edge proxy overwrites it. Railway does overwrite
-    it, so this is sound in the current deployment, but it means the
-    per-IP limit is a courtesy control against casual abuse rather than a
-    security boundary. The per-agent limit below is the one that actually
-    caps quota spend, and it cannot be evaded by forging a header.
+    X-Forwarded-For is deliberately NOT read. This used to trust its first
+    entry, on the belief that Railway overwrites it; Railway documents no
+    such thing, and the first entry is whatever the client sent. Verified
+    against a local server on 2026-09-24: ten requests each carrying a
+    different invented X-Forwarded-For all got through a limit of eight,
+    so the per-IP limit could be skipped by anyone who knew to try.
+
+    Without a proxy (local dev, tests) there is no X-Real-IP and the socket
+    peer is already the real client. Run uvicorn with --no-proxy-headers
+    locally, or it rewrites the socket peer from X-Forwarded-For for
+    loopback connections and the forged header gets in that way instead.
+
+    The assumption this rests on: X-Real-IP is only trustworthy behind a
+    proxy that sets it. Deployed anywhere without one, a client could send
+    it themselves. Still a courtesy limit either way -- the per-agent
+    limits below are what bound spend, and no header affects those.
     """
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        first = forwarded.split(",")[0].strip()
-        if first:
-            return first
+    real_ip = request.headers.get("x-real-ip", "").strip()
+    if real_ip:
+        return real_ip
     return request.client.host if request.client else "unknown"

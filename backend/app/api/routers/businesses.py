@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from postgrest.exceptions import APIError
 
 from app.core.security import CurrentUserDep
 from app.core.supabase_client import get_supabase
@@ -25,11 +26,23 @@ async def create_business(payload: BusinessCreate, current_user: CurrentUserDep)
     if existing.data:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Business already exists for this account")
 
-    result = (
-        supabase.table("businesses")
-        .insert({"auth_user_id": current_user.user_id, "name": payload.name})
-        .execute()
-    )
+    # The check above is not enough on its own: two requests at once (a
+    # double-clicked submit) can both find nothing and both insert, leaving
+    # one login with two businesses and get_current_business_id picking
+    # either. The unique constraint on auth_user_id is what actually
+    # prevents that; this turns its violation into the same answer as the
+    # check. (Production was found without that constraint on 2026-09-24;
+    # supabase/migrations/20260924000000_harden_schema.sql adds it.)
+    try:
+        result = (
+            supabase.table("businesses")
+            .insert({"auth_user_id": current_user.user_id, "name": payload.name})
+            .execute()
+        )
+    except APIError as exc:
+        if exc.code == "23505":  # unique_violation
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Business already exists for this account") from None
+        raise
     return result.data[0]
 
 

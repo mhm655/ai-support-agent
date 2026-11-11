@@ -1,8 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
+import logging
 
+from fastapi import APIRouter, HTTPException, status
+from postgrest.exceptions import APIError
+
+from app.core.ids import UUIDPath
 from app.core.security import CurrentBusinessIdDep
 from app.core.supabase_client import get_supabase
 from app.schemas.agent import AgentCreate, AgentResponse, AgentUpdate
+from app.services.storage import delete_document as delete_stored_document
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -39,7 +46,7 @@ async def create_agent(payload: AgentCreate, business_id: CurrentBusinessIdDep) 
 
 
 @router.get("/{agent_id}", response_model=AgentResponse)
-async def get_agent(agent_id: str, business_id: CurrentBusinessIdDep) -> AgentResponse:
+async def get_agent(agent_id: UUIDPath, business_id: CurrentBusinessIdDep) -> AgentResponse:
     supabase = get_supabase()
     result = (
         supabase.table("agents")
@@ -55,7 +62,7 @@ async def get_agent(agent_id: str, business_id: CurrentBusinessIdDep) -> AgentRe
 
 
 @router.patch("/{agent_id}", response_model=AgentResponse)
-async def update_agent(agent_id: str, payload: AgentUpdate, business_id: CurrentBusinessIdDep) -> AgentResponse:
+async def update_agent(agent_id: UUIDPath, payload: AgentUpdate, business_id: CurrentBusinessIdDep) -> AgentResponse:
     supabase = get_supabase()
     # exclude_unset, not "drop the Nones": personality and instructions are
     # nullable, so an explicit null is a real instruction to clear the field.
@@ -78,14 +85,49 @@ async def update_agent(agent_id: str, payload: AgentUpdate, business_id: Current
 
 
 @router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_agent(agent_id: str, business_id: CurrentBusinessIdDep) -> None:
+async def delete_agent(agent_id: UUIDPath, business_id: CurrentBusinessIdDep) -> None:
     supabase = get_supabase()
-    result = (
+
+    # Collected before the delete, while the rows still exist. The database
+    # removes the agent's documents with it (ON DELETE CASCADE), but the
+    # files they point at live in Storage, which no cascade reaches -- so
+    # without this every deleted agent left its uploads in the bucket.
+    # Scoped by business_id through the agent, so this reads nothing when
+    # the agent is not the caller's.
+    owned = (
         supabase.table("agents")
-        .delete()
+        .select("id, documents(storage_path)")
         .eq("id", agent_id)
         .eq("business_id", business_id)
+        .limit(1)
         .execute()
     )
-    if not result.data:
+    if not owned.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found")
+    paths = [d["storage_path"] for d in owned.data[0].get("documents") or []]
+
+    try:
+        supabase.table("agents").delete().eq("id", agent_id).eq("business_id", business_id).execute()
+    except APIError as exc:
+        # 23503 is a foreign key violation: the database still has child
+        # rows without ON DELETE CASCADE. Production was found in exactly
+        # that state on 2026-09-24 (every foreign key NO ACTION), which made
+        # this route a bare 500 for any agent that had ever been used.
+        # supabase/migrations/20260924000000_harden_schema.sql adds the
+        # cascades; until it is applied, say what is wrong instead.
+        if exc.code == "23503":
+            logger.error("Agent %s delete blocked by a foreign key; cascades missing", agent_id)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This agent still has documents or conversations that could not be removed. Please contact support.",
+            ) from None
+        raise
+
+    for path in paths:
+        try:
+            delete_stored_document(path)
+        except Exception:
+            # Same trade as deleting a single document: the rows are gone,
+            # which is the delete the user asked for; a leftover file is
+            # logged and recoverable.
+            logger.warning("Deleted agent %s but a stored file may remain at %s", agent_id, path)

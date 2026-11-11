@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers import agents, analytics, businesses, conversations, documents, leads, public_chat
-from app.core.config import settings
+from app.core.body_limit import BodySizeLimitMiddleware
 from app.core.rate_limit import guard_single_instance
 
 # Refuses to start rather than silently under-enforcing the public chat
@@ -33,12 +33,24 @@ app = FastAPI(title="AI Support Agent API", version="0.1.0")
 # Note that Starlette's CORSMiddleware is global, so an actual per-route
 # split would mean two mounted apps or custom middleware -- more machinery
 # than the security benefit justifies today.
+#
+# Added before CORS on purpose: Starlette makes the last-added middleware
+# the outermost, so CORS wraps this one and a 413 still carries the CORS
+# headers. The other way round, the widget would see a 413 as an opaque
+# network failure instead of a readable error.
+app.add_middleware(BodySizeLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Browsers hide every response header outside a short safelist from
+    # cross-origin JavaScript unless it is exposed here. The widget always
+    # runs cross-origin, so without this res.headers.get("Retry-After")
+    # was always null and a rate-limited visitor was never told how long
+    # to wait -- found in the browser on 2026-09-24.
+    expose_headers=["Retry-After"],
 )
 
 app.include_router(businesses.router)

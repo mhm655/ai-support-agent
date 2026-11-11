@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
+from app.core.ids import UUIDPath
 from app.core.security import CurrentBusinessIdDep
 from app.core.supabase_client import get_supabase
 from app.schemas.conversation import ConversationResponse, MessageResponse
@@ -22,7 +23,7 @@ def _assert_owns_agent(agent_id: str, business_id: str) -> None:
 
 
 @router.get("/agents/{agent_id}/conversations", response_model=list[ConversationResponse])
-async def list_conversations(agent_id: str, business_id: CurrentBusinessIdDep) -> list[ConversationResponse]:
+async def list_conversations(agent_id: UUIDPath, business_id: CurrentBusinessIdDep) -> list[ConversationResponse]:
     _assert_owns_agent(agent_id, business_id)
     supabase = get_supabase()
     result = (
@@ -36,7 +37,7 @@ async def list_conversations(agent_id: str, business_id: CurrentBusinessIdDep) -
 
 
 @router.get("/conversations/{conversation_id}/messages", response_model=list[MessageResponse])
-async def get_conversation_messages(conversation_id: str, business_id: CurrentBusinessIdDep) -> list[MessageResponse]:
+async def get_conversation_messages(conversation_id: UUIDPath, business_id: CurrentBusinessIdDep) -> list[MessageResponse]:
     supabase = get_supabase()
     convo = (
         supabase.table("conversations")
