@@ -1,105 +1,111 @@
 import Script from "next/script";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { BrandLink } from "@/components/Brand";
-import { ArrowLeftIcon, ChatIcon, DocumentIcon, SparkIcon } from "@/lib/icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const DEMO_AGENT_ID = process.env.NEXT_PUBLIC_DEMO_AGENT_ID;
 
 export const metadata: Metadata = { title: "Live demo" };
 
-const STEPS = [
+/*
+ * Things to type, each next to what it shows. These replaced three numbered
+ * icon cards that explained the pipeline (embeddings, pgvector) to a reader
+ * who came here to try the thing, not to review how it is built. The README
+ * is the home for that explanation.
+ */
+const TRY = [
   {
-    icon: DocumentIcon,
-    title: "It only knows the sample docs",
-    body: "Two documents from NOVA, a fictional property firm: how the company works, and its current listings. Nothing else was pre-written.",
+    ask: "What's available in Boston under $4 million?",
+    shows: "It answers from the listings document, with the real prices in it.",
   },
   {
-    icon: SparkIcon,
-    title: "Your question gets embedded",
-    body: "Then matched against those documents with a pgvector similarity search before anything is generated.",
+    ask: "How do I schedule a viewing?",
+    shows: "It answers from the document about how the company works.",
   },
   {
-    icon: ChatIcon,
-    title: "The answer is grounded",
-    body: "Gemini writes the reply from the passages that came back, and says so when the docs don't cover it.",
+    ask: "Something the documents don't cover.",
+    shows: "It says it doesn't know and offers to have someone get back to you. It does not guess.",
   },
 ];
 
 export default function DemoPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="relative mx-auto max-w-2xl px-5 py-10 sm:px-8 sm:py-16">
-        <div className="flex items-center justify-between gap-4">
+    <div className="flex min-h-screen flex-col">
+      {/* Same bar as the landing page, minus the section links. */}
+      <header className="border-b border-edge">
+        <div className="mx-auto flex h-16 max-w-[82rem] items-center justify-between px-5 sm:px-8">
           <BrandLink />
-          <Link
-            href="/"
-            className="focus-ring inline-flex items-center gap-1.5 rounded text-sm text-ink-faint transition hover:text-ink"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back
+          <Link href="/signup" className="btn btn-primary px-4 py-2 text-[14px]">
+            Get started free
           </Link>
         </div>
+      </header>
 
-        <p className="label-mono mt-14">Live demo</p>
-        <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.06] tracking-[-0.03em] sm:text-5xl">
-          <span>Ask it something</span>
-          <br />
-          <span className="text-volt">it wasn&apos;t told to expect.</span>
-        </h1>
-        <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-ink-muted">
-          This is a real agent running the same pipeline every agent on this site uses, not a canned
-          script. Try asking what&apos;s available in Boston under $4 million, or how to schedule a
-          viewing.
-        </p>
-
-        {DEMO_AGENT_ID ? (
-          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-edge bg-paper-raised px-4 py-2 text-sm text-ink-muted">
-            <span aria-hidden="true" className="text-lg leading-none">
-              ↘
+      <main className="flex-1">
+        <div className="mx-auto max-w-[82rem] px-5 pt-12 pb-24 sm:px-8 lg:pt-16 lg:pb-32">
+          <h1 className="display-poster text-[clamp(3.75rem,10vw,9.5rem)] text-ink">
+            <span className="poster-line">
+              <span className="poster-in">Try to</span>
             </span>
-            Open the chat bubble in the bottom-right corner
-          </p>
-        ) : (
-          <p className="mt-6 rounded-2xl border border-volt/30 bg-volt/[0.07] px-4 py-3.5 text-sm leading-relaxed text-volt">
-            Demo agent not configured. Set{" "}
-            <code className="font-mono">NEXT_PUBLIC_DEMO_AGENT_ID</code> in the environment to enable
-            this page.
-          </p>
-        )}
+            <span className="poster-line sm:pl-[14vw]">
+              <span className="poster-in poster-in-2">catch it out.</span>
+            </span>
+          </h1>
 
-        <ol className="mt-14 flex flex-col gap-3">
-          {STEPS.map((step, i) => (
-            <li key={step.title} className="panel flex items-start gap-4 p-5">
-              <span
-                aria-hidden="true"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-edge bg-paper-sunk text-volt"
+          <div className="hero-in-2 mt-12 max-w-[34rem] lg:mt-16">
+            <p className="text-[19px] leading-[1.45] text-ink-muted">
+              <span className="font-semibold text-ink">This is a real agent, not a script.</span> It
+              was given two documents from NOVA, a made-up property firm: how the company works,
+              and its current listings. That is everything it knows.
+            </p>
+
+            {DEMO_AGENT_ID ? (
+              <p className="mt-6 text-[16px] leading-relaxed text-ink">
+                The chat is the round button in the bottom-right corner, where it would sit on your
+                own site.
+              </p>
+            ) : (
+              <p className="mt-6 border-l-2 border-bad pl-4 text-[15px] leading-relaxed text-ink-muted">
+                The demo agent is not configured. Set{" "}
+                <code className="font-mono text-[13px] text-ink">NEXT_PUBLIC_DEMO_AGENT_ID</code> in
+                the environment to enable this page.
+              </p>
+            )}
+          </div>
+
+          <h2 className="display mt-24 text-[2rem] sm:text-[2.75rem] lg:mt-32">Things to ask</h2>
+          <ul className="mt-10 divide-y divide-edge border-y border-edge">
+            {TRY.map(({ ask, shows }) => (
+              <li
+                key={ask}
+                className="grid grid-cols-1 gap-3 py-8 lg:grid-cols-12 lg:items-baseline lg:gap-8 lg:py-10"
               >
-                <step.icon className="h-4.5 w-4.5" />
-              </span>
-              <div>
-                <h2 className="font-display text-[15px] font-bold tracking-tight text-ink">
-                  <span className="mr-2 font-mono text-[11px] font-normal text-ink-faint">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {step.title}
-                </h2>
-                <p className="mt-1.5 text-[14.5px] leading-relaxed text-ink-muted">{step.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+                <p className="display text-[1.5rem] leading-[1.1] sm:text-[2rem] lg:col-span-7">
+                  {ask}
+                </p>
+                <p className="text-[17px] leading-[1.55] text-ink-muted lg:col-span-4 lg:col-start-9">
+                  {shows}
+                </p>
+              </li>
+            ))}
+          </ul>
 
-        <div className="mt-12 flex flex-wrap gap-3">
-          <Link href="/signup" className="btn btn-primary px-6 py-3">
-            Build your own
-          </Link>
-          <Link href="/" className="btn btn-ghost px-6 py-3">
-            How it works
-          </Link>
+          <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <Link href="/signup" className="btn btn-volt px-6 py-3">
+              Build one for your business
+              <ArrowRight weight="bold" className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/#how"
+              className="focus-ring rounded text-[15px] text-ink-muted underline decoration-edge-strong underline-offset-4 transition hover:text-ink"
+            >
+              How it works
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
 
       {DEMO_AGENT_ID && (
         <Script
@@ -109,6 +115,6 @@ export default function DemoPage() {
           strategy="afterInteractive"
         />
       )}
-    </main>
+    </div>
   );
 }

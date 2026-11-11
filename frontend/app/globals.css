@@ -362,6 +362,24 @@ body {
   }
 }
 
+/*
+ * Dialog entrance. components/Dialog.tsx referenced both of these by name
+ * before either existed, so dialogs used to appear with no transition at
+ * all. No fill mode, same as the hero: the resting style is the visible one.
+ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);

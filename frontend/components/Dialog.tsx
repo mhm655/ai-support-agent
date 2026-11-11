@@ -95,7 +95,10 @@ export default function Dialog({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-paper/80 backdrop-blur-sm motion-safe:animate-[fade-in_150ms_ease-out]"
+        // A plain ink scrim, no blur. It dims the page enough that the dialog
+        // is unmistakably the only live thing, which the old pale blurred
+        // backdrop did not: a near-white panel on a near-white haze.
+        className="absolute inset-0 bg-ink/45 motion-safe:animate-[fade-in_150ms_ease-out]"
       />
       <div
         ref={panelRef}
@@ -104,19 +107,19 @@ export default function Dialog({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
-        className="panel relative w-full max-w-md p-6 outline-none motion-safe:animate-[dialog-in_180ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="relative w-full max-w-md rounded-[var(--radius-panel)] bg-paper-high p-7 outline-none motion-safe:animate-[dialog-in_180ms_cubic-bezier(0.16,1,0.3,1)] sm:p-8"
         style={{ boxShadow: "var(--shadow-4)" }}
       >
-        <h2 id={titleId} className="font-display text-lg font-bold tracking-tight text-ink">
+        <h2 id={titleId} className="display text-[1.625rem] leading-[1.08] text-ink">
           {title}
         </h2>
         {description && (
-          <p id={descId} className="mt-2 text-sm leading-relaxed text-ink-muted">
+          <p id={descId} className="mt-3 text-[15px] leading-relaxed text-ink-muted">
             {description}
           </p>
         )}
-        {children && <div className="mt-5">{children}</div>}
-        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{footer}</div>
+        {children && <div className="mt-6">{children}</div>}
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{footer}</div>
       </div>
     </div>
   );
